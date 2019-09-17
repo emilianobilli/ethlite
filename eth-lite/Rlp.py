@@ -14,7 +14,7 @@ class Rlp:
     elif encoding == 'bytearray':
       return bytearray.fromhex(cls.encode_data(value))
     else:
-      raise ValueError('encoding=<bytearray|hex>')
+      raise ValueError('encode(): Invalid argument value, encoding=<bytearray|hex>')
 
   @classmethod
   def decode(cls,value):
@@ -35,7 +35,7 @@ class Rlp:
   @classmethod
   def from_bigendian_int(cls, value):
     if value < 0:
-      raise ValueError('Expect positive values')
+      raise ValueError('from_bigendian_int(): Invalid value, expect positive values.')
     
     if value == 0:
       return '80'
@@ -64,7 +64,7 @@ class Rlp:
       else:
         return cls.from_bigendian_int(int(cls.string_tohex(value),16))
     else:
-      pass
+      raise TypeError('encode_bytes(): Invalid type, expect integer(int|long), hexstring or bytearray')
 
   @classmethod
   def encode_data(cls,value):
