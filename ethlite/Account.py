@@ -55,7 +55,7 @@ class Account:
   @privateKey.setter
   def privateKey(self, privateKey):
     if type(privateKey).__name__ == 'int' or type(privateKey).__name__ == 'long': 
-      if privateKey < secp256k1n and privateKey > 0:
+      if privateKey <= secp256k1n-1 and privateKey > 0:
         self.__privateKey = SigningKey.from_secret_exponent(privateKey,SECP256k1)
       else:
         raise ValueError('privateKey: Invalid range')
@@ -68,6 +68,11 @@ class Account:
 
   @property
   def addr(self):
+    '''
+      For a given private key, pr, the Ethereum address A(pr) (a 160-bit value) to which it corresponds is defined as the
+      rightmost 160-bits of the Keccak hash of the corresponding ECDSA public key:
+      (284) A(pr) = B[96,255] KEC(ECDSAPUBKEY(pr))
+    '''
     if self.__addr == None:
       self.__addr = '0x' + keccak_256(bytearray.fromhex(self.publicKey[2:])).hexdigest()[24:]
     return self.__addr
