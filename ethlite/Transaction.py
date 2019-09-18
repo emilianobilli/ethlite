@@ -259,13 +259,11 @@ class Transaction(object):
 
     self.r = signature.r
     self.s = signature.s
-    '''
-      Check: https://github.com/ethereum/eth-keys/blob/a95532d5b9fc0116c5fdae6dfa29ce2636dc44e7/eth_keys/backends/native/ecdsa.py#L108
-    '''
-    if self.s > Account.secp256k1n // 2:
-      self.s = Account.secp256k1n - self.s
-      signature.even = not signature.even
-    
+
+    #if self.s > Account.secp256k1n // 2:
+    #  self.s = Account.secp256k1n - self.s
+    #  signature.even = not signature.even
+
     if self.chainId is not None:
       self.v = self.chainId * 2 + (35 if signature.even else 36)
     else:
