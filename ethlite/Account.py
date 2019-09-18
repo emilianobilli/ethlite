@@ -20,8 +20,7 @@ class Sign:
     return self.signature.hex() + str(hex(27 if self.even else 28))[2:]
 
 class Account:
-  MAX = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140
-  MIN = 0x1
+  secp256k1n = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 
   def __init__(self,pk=None):
     if pk is not None:
@@ -41,7 +40,7 @@ class Account:
   @privateKey.setter
   def privateKey(self, privateKey):
     if type(privateKey).__name__ == 'int' or type(privateKey).__name__ == 'long': 
-      if privateKey < self.MAX and privateKey >= self.MIN:
+      if privateKey < self.secp256k1n and privateKey > 0:
         self.__privateKey = SigningKey.from_secret_exponent(privateKey,SECP256k1)
       else:
         raise ValueError('privateKey: Invalid range')
