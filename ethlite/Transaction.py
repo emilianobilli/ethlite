@@ -4,7 +4,6 @@ from Rlp import Rlp
 
 class Transaction(object):
   rlp = Rlp()
-  keccak = keccak_256
 
   def __init__(self,**kargs):
     if 'nonce' in kargs.keys():
