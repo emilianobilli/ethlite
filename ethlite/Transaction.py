@@ -243,11 +243,7 @@ class Transaction(object):
       else:
         private_key = Account(private_key)
 
-    signature = private_key.sign_digest(h)
-
-    r = '0x' + signature.hex()[:64]
-    s = '0x' + signature.hex()[64:]
-    return r,s 
+    return private_key.sign_digest(h)
 
   def sign(self,private_key):
 
@@ -260,21 +256,36 @@ class Transaction(object):
       to_hash = self.rlp.encode(list(self)[:6],encoding='bytearray')
     
     to_sign = keccak_256(to_hash).digest()
-    self.r, self.s = self.sign_hash(to_sign,private_key)
+    signature = self.sign_hash(to_sign,private_key)
 
-    #if self.eip155:
-    #  self.v = self.chainId * 2 + 36
+    self.r = signature.r
+    self.s = signature.s
+
+    if self.chainId is not None:
+      self.v = self.chainId * 2 + (35 if signature.even else 36)
+    else:
+      self.v = 27 if signature.even else 28 
+
+    '''
+      Check: https://github.com/ethereum/eth-keys/blob/a95532d5b9fc0116c5fdae6dfa29ce2636dc44e7/eth_keys/backends/native/ecdsa.py#L108
+    '''
+
+    self.s = 53899814447150465022476319794757833505508667338521549961848932779965939911709
+    self.v = 119
+    print(list(self))
     return self.rlp.encode(list(self))
 
 if __name__ == '__main__':
   tx = Transaction()
-  tx.nonce = 2316
-  tx.gasPrice = 25 * 10 ** 9
+  tx.nonce = 2324
+  tx.gasPrice = 81 * 10 ** 9
   tx.gasLimit = 21000
-  tx.to = '0x3535353535353535353535353535353535353535'
-  tx.value = 10 ** 17
+  tx.to = '0x3535353535353535353535353535353535353536'
+  tx.value = 10 ** 16
   tx.chainId = 42
   pk = int('7a75b6b7d87cf3f0d9da5868c7c9dfb53b32175f09563b75159391c071d07bae',16)
   print (tx.sign(pk))
+  
 
   n = Account.fromhex('0x7a75b6b7d87cf3f0d9da5868c7c9dfb53b32175f09563b75159391c071d07bae')
+  print(n.addr)

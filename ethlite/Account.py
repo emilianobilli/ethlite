@@ -3,11 +3,11 @@ from ecdsa    import SigningKey
 from ecdsa    import SECP256k1
 
 class Sign:
-  def __init__(self,s,parity):
+  def __init__(self,s,even):
     self.signature = s
-    self.r = self.signature.hex()[:64]
-    self.s = self.signature.hex()[64:]
-    self.parity = parity
+    self.r = '0x' + self.signature.hex()[:64]
+    self.s = '0x' + self.signature.hex()[64:]
+    self.even = even
 
   def __unicode__(self):
     return self.signature.hex()
@@ -17,7 +17,7 @@ class Sign:
     return self.signature.hex()
 
   def eth_signature_format(self):
-    return self.signature.hex() + str(hex(27 if self.parity else 28))[2:]
+    return self.signature.hex() + str(hex(27 if self.even else 28))[2:]
 
 class Account:
   MAX = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140
@@ -59,9 +59,9 @@ class Account:
     return self.__addr
 
   def sign_digest(self, digest):
-    sig = self.__privateKey.sign_digest_deterministic(digest, hashfunc=keccak_256)
-    return Sign(sig,1)
+    sig, even = self.__privateKey.sign_digest_deterministic(digest, hashfunc=keccak_256)
+    return Sign(sig,even)
 
   def sign(self, message):
-    sig = self.__privateKey.sign_deterministic(message,hashfunc=keccak_256)
-    return Sign(sig,1)
+    sig, even = self.__privateKey.sign_deterministic(message,hashfunc=keccak_256)
+    return Sign(sig,even)
