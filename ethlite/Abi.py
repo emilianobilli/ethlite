@@ -1,8 +1,8 @@
 from re import match
 from re import findall
+from sha3 import keccak_256
 
 ARRAY_DYNAMIC_SIZE = -1
-
 
 def pad_left(word, char='0'):
   word = align(word)
@@ -217,7 +217,7 @@ class AbiEncoder:
   def encode(cls,arguments,values):
     queue = []
     words = get_number_of_words(arguments)
-    next_dynamic_argument = words * 32
+    next_dynamic_argument_offset = words * 32
     
     data = ''
 
@@ -226,8 +226,8 @@ class AbiEncoder:
       encoded_argument = encode(arg, values[i])
       i = i + 1
       if is_dynamic(arg):
-        data = data + enc_uint(next_dynamic_argument)
-        next_dynamic_argument = next_dynamic_argument + (len(encoded_argument) // 2)
+        data = data + enc_uint(next_dynamic_argument_offset)
+        next_dynamic_argument_offset = next_dynamic_argument_offset + (len(encoded_argument) // 2)
         queue.append(encoded_argument)
       else:
         data = data + encoded_argument
@@ -240,6 +240,18 @@ class AbiEncoder:
   @classmethod
   def decode(cls,arguments, data):
     pass
+
+  @classmethod
+  def function_signature(cls,function_name,arguments):
+    signature_raw = '%s(%s)' % (function_name,','.join(arguments))
+    signature_bytes = bytearray.fromhex(string_to_hex(signature_raw))
+    return '0x' + keccak_256(signature_bytes).hexdigest()[:8]
+
+  @classmethod
+  def event_hash(cls, event_name,arguments):
+    event_raw = '%s(%s)' % (event_name,','.join(arguments))
+    event_bytes = bytearray.fromhex(string_to_hex(event_raw))
+    return '0x' + keccak_256(event_bytes).hexdigest()
 
 if __name__ == '__main__':
   print(encode('uint256', 3))
@@ -259,3 +271,5 @@ if __name__ == '__main__':
   print(AbiEncoder.encode(['uint','uint'],[1,2]))
   print(AbiEncoder.encode(['uint','uint32[]','bytes10','bytes'],[0x123, [0x456, 0x789], "1234567890", "Hello, world!"]))
   print(AbiEncoder.encode(['bytes','bool','uint256[]'],["dave",True,[1,2,3]]))
+  print(AbiEncoder.function_signature('sam',['bytes','bool','uint256[]']))
+  print(AbiEncoder.event_hash('tito',['uint','int']))
