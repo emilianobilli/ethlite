@@ -2,14 +2,14 @@ from re import match
 from re import findall
 
 def pad_left(word, char='0'):
-  word = even(word)
+  word = align(word)
   tofill = 64 - len(word) + 1
   for i in range(1,tofill):
     word = char + word
   return word
 
 def pad_right(word):
-  word = even(word)
+  word = align(word)
   tofill = 64 - len(word) + 1 
   for i in range(1,tofill):
     word = word + '0'
@@ -20,7 +20,7 @@ def remove0x(word):
     return word[2:]
   return word
 
-def even(word):
+def align(word):
   word = remove0x(word)
   if len(word) % 2 == 1:
     return '0' + word
@@ -38,7 +38,6 @@ def enc_address(address):
   if type(address).__name__ == 'str' and address.startswith('0x') and len(address) == 42:
     return pad_left(address)
   raise TypeError('enc_address(): Expect hexstring (start with 0x ) and len == 40')
-
 
 def enc_uint(uint):
   if (type(uint).__name__ == 'int' or type(uint).__name__ == 'long') and uint >= 0:
@@ -200,29 +199,36 @@ def is_dynamic(arg):
   return False
 
 
-def encode_arguments(arguments,values):
-  queue = []
-  words = get_number_of_words(arguments)
-  next_dynamic_argument = words * 32
-  
-  data = ''
+class AbiEncoder:
 
-  i = 0
-  for arg in arguments:
-    encoded_argument = encode(arg, values[i])
-    i = i + 1
-    if is_dynamic(arg):
-      data = data + enc_uint(next_dynamic_argument)
-      next_dynamic_argument = next_dynamic_argument + (len(encoded_argument) // 2)
-      queue.append(encoded_argument)
-    else:
-      data = data + encoded_argument
+  @classmethod
+  def encode(cls,arguments,values):
+    queue = []
+    words = get_number_of_words(arguments)
+    next_dynamic_argument = words * 32
+    
+    data = ''
 
-  for to_append in queue:
-    data = data + to_append
+    i = 0
+    for arg in arguments:
+      encoded_argument = encode(arg, values[i])
+      i = i + 1
+      if is_dynamic(arg):
+        data = data + enc_uint(next_dynamic_argument)
+        next_dynamic_argument = next_dynamic_argument + (len(encoded_argument) // 2)
+        queue.append(encoded_argument)
+      else:
+        data = data + encoded_argument
+
+    for to_append in queue:
+      data = data + to_append
   
-  return data
-  
+    return data
+
+  @classmethod
+  def decode(cls,arguments, data):
+    pass
+
 if __name__ == '__main__':
   print(encode('uint256', 3))
   print(encode('uint[]', [3,3,2,1,2]))
@@ -238,6 +244,6 @@ if __name__ == '__main__':
   print(encode('bytes32[]', ['pedazo de ', 'puto de mierda']))
   print(encode('bytes', '0x1111'))
   print(get_number_of_words(['uint32', 'uint[5]', 'address', 'uint[]']))
-  print(encode_arguments(['uint','uint'],[1,2]))
-  print(encode_arguments(['uint','uint32[]','bytes10','bytes'],[0x123, [0x456, 0x789], "1234567890", "Hello, world!"]))
-  print(encode_arguments(['bytes','bool','uint256[]'],["dave",True,[1,2,3]]))
+  print(AbiEncoder.encode(['uint','uint'],[1,2]))
+  print(AbiEncoder.encode(['uint','uint32[]','bytes10','bytes'],[0x123, [0x456, 0x789], "1234567890", "Hello, world!"]))
+  print(AbiEncoder.encode(['bytes','bool','uint256[]'],["dave",True,[1,2,3]]))
