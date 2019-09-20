@@ -1,6 +1,9 @@
 from re import match
 from re import findall
 
+ARRAY_DYNAMIC_SIZE = -1
+
+
 def pad_left(word, char='0'):
   word = align(word)
   tofill = 64 - len(word) + 1
@@ -15,13 +18,13 @@ def pad_right(word):
     word = word + '0'
   return word
 
-def remove0x(word):
+def sanitize_hex(word):
   if word.startswith('0x'):
     return word[2:]
   return word
 
 def align(word):
-  word = remove0x(word)
+  word = sanitize_hex(word)
   if len(word) % 2 == 1:
     return '0' + word
   return word
@@ -65,29 +68,28 @@ def enc_T(value, encfunc):
 def string_to_hex(string):
     ret = ''
     for ch in string:
-      ret = ret + hex(ord(ch))[2:]
-    return '0x' + ret
+      ret = ret + sanitize_hex(hex(ord(ch)))
+    return ret
 
 
 def enc_bytes(b, fixed=False):
   '''
     Accepted datatypes:
-      - bytearray
-      - hexstring - starting with '0x'
+      - bytearray including bytes
+      - hexstring starting with '0x'
       - string
   '''
-  if type(b).__name__ == 'bytearray':
-    b = b.hex()[2:]
+  if type(b).__name__ == 'bytearray' or type(b).__name__  == 'bytes':
+    b = sanitize_hex(b.hex())
   elif type(b).__name__ == 'str':
     if b.startswith('0x'):
-      b = b[2:]
+      b = sanitize_hex(b)
     else:
-      b = string_to_hex(b)[2:]
+      b = sanitize_hex(string_to_hex(b))
   else:
     raise TypeError('enc_bytes(): expect bytearray or hexstring')
 
   size = len(b) // 2
-  print(b)
 
   if fixed and len(b) > 64:
     raise ValueError('enc_bytes(): fixed value grater than bytes32')
@@ -110,69 +112,81 @@ def get_type(s):
   var = match(var_type_re, s)
   if var is not None:
     ret = {
-      'type': var.group(1),
-      'bits': var.group(2)
+      'type': var.group(1)
     }
+
+    if var.group(2) is not None and var.group(2) != '':
+      ret['size'] = var.group(2)
+
     array = [l.replace('[','').replace(']','') for l in findall('\[\d*\]',s)]
     if array != []:
-      ret['array'] = 0 if array[0] == '' else int(array[0])
+      ret['array'] = ARRAY_DYNAMIC_SIZE if array[0] == '' else int(array[0])
+
+    if var.group(1) == 'string' or (var.group(1) == 'bytes' and 'size' not in ret) or ('array' in ret and ret['array'] == ARRAY_DYNAMIC_SIZE):
+      ret['dynamic'] = True
+    else:
+      ret['dynamic'] = False
+    
     return ret   
   return None
 
 
-def encode(var_type, value):
-  t = get_type(var_type)
+def encode(var, value):
+  var_type = get_type(var)
 
-  if t['type'] == 'int' or t['type'] == 'uint':
-    if 'array' not in t:
-      return enc_uint(value)
-    else:
+  if var_type['type'] == 'int' or var_type['type'] == 'uint':
+    if 'array' in var_type:
       if type(value).__name__ == 'list':
-        if t['array'] == 0:
+        if var_type['array'] == ARRAY_DYNAMIC_SIZE:
           return enc_T(value, enc_uint)
         else:
-          return enc_Tk(value,t['array'], enc_uint)
+          return enc_Tk(value,var_type['array'], enc_uint)
       else:
-        raise TypeError('encode([%s]): Expect a list but %s received' % (t['type'],type(value).__name__))
-
-  elif t['type'] == 'bool':
-    if 'array' not in t:
-      return enc_bool(value)
+        raise TypeError('encode([%s]): Expect a list but %s received' % (var_type['type'],type(value).__name__))
     else:
+      return enc_uint(value)
+      
+
+  elif var_type['type'] == 'bool':
+    if 'array' in var_type:
       if type(value).__name__ == 'list':
-        if t['array'] == 0:
+        if var_type['array'] == ARRAY_DYNAMIC_SIZE:
           return enc_T(value, enc_bool)
         else:
-          return enc_Tk(value,t['array'], enc_bool)
+          return enc_Tk(value,var_type['array'], enc_bool)
       else:
-        raise TypeError('encode([%s]): Expect a list but %s received' % (t['type'],type(value).__name__))
-
-  elif t['type'] == 'address':
-    if 'array' not in t:
-      return enc_address(value)
+        raise TypeError('encode([%s]): Expect a list but %s received' % (var_type['type'],type(value).__name__))
     else:
+      return enc_bool(value)
+      
+
+  elif var_type['type'] == 'address':
+    if 'array' in var_type:
       if type(value).__name__ == 'list':
-        if t['array'] == 0:
+        if var_type['array'] == ARRAY_DYNAMIC_SIZE:
           return enc_T(value, enc_address)
         else:
-          return enc_Tk(value,t['array'], enc_address)
+          return enc_Tk(value,var_type['array'], enc_address)
       else:
-        raise TypeError('encode([%s]): Expect a list but %s received' % (t['type'],type(value).__name__))
+        raise TypeError('encode([%s]): Expect a list but %s received' % (var_type['type'],type(value).__name__))
+    else:
+      return enc_address(value)
+      
 
-  elif t['type'] == 'string':
-    if 'array' in t:
+  elif var_type['type'] == 'string':
+    if 'array' in var_type:
       raise TypeError('encode(string): Array is not valid')
     else:
       return enc_string(value)
     
-  elif t['type'] == 'bytes':
-    if t['bits'] != '':
-      if 'array' in t:
+  elif var_type['type'] == 'bytes':
+    if 'size' in var_type:
+      if 'array' in var_type:
         if type(value).__name__ == 'list':
-          if t['array'] == 0:
+          if var_type['array'] == ARRAY_DYNAMIC_SIZE:
             return enc_T(value,enc_bytes_fixed)
           else:
-            return enc_Tk(value, t['array'], enc_bytes_fixed)
+            return enc_Tk(value, var_type['array'], enc_bytes_fixed)
       else:
         return enc_bytes_fixed(value)
     else:
@@ -194,10 +208,8 @@ def get_number_of_words(args):
 
 def is_dynamic(arg):
   arg_type = get_type(arg)
-  if ( 'array' in arg_type and arg_type['array'] == 0 ) or arg_type['type'] == 'string' or (arg_type['type'] == 'bytes' and arg_type['bits'] == ''):
-    return True
-  return False
-
+  return arg_type['dynamic']
+  
 
 class AbiEncoder:
 
