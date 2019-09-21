@@ -1,2 +1,2 @@
 # eth-lite
-Ethreum Library Lite
+Ethreum Lite Client Library
