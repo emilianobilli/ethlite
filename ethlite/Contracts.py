@@ -38,7 +38,7 @@ class ContractFunction(object):
         # raise
       pass
 
-    if self.payable == True and self.stateMutability == 'payable':
+    if self.payable == True and self.stateMutability == 'payable' and 'value' in kwargs:
       '''
         Hay que enviar fondos
       '''  
