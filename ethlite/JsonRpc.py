@@ -18,6 +18,12 @@ class JsonRpc:
         'id': 1
     }
 
+  def __str__(self):
+    return self.node
+  
+  def __repr__(self):
+    return 'JsonRpc(%s)' % self.node
+
   def doPost(self,data,timeout=None):
     return requests.post(
       self.node,
