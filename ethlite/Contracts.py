@@ -39,14 +39,6 @@ class ContractFunction(object):
         # raise
       pass
 
-    if self.payable == True and self.stateMutability == 'payable' and 'value' in kwargs:
-      '''
-        Hay que enviar fondos
-      '''  
-      value = kwargs['value']
-    else:
-      value = 0
-      
     if 'account' in kwargs:
       '''
           Verificamos que la cuenta sea pasada como parametro
@@ -86,9 +78,18 @@ class ContractFunction(object):
     data = AbiEncoder.encode(arguments, args)
 
     tx = Transaction()
-    tx.nonce = self.contract.jsonrpc_provider.eth_getTransactionCount(self.contract.account.addr,'latest')['result']
+
+    if 'nonce' in kwargs:
+      tx.nonce = kwargs['nonce']
+    else:
+      tx.nonce = self.contract.jsonrpc_provider.eth_getTransactionCount(self.contract.account.addr,'latest')['result']
+
+    if self.payable == True and self.stateMutability == 'payable' and 'value' in kwargs:
+      tx.value = kwargs['value']
+    else:
+      tx.value = 0
+
     tx.to = self.contract.address
-    tx.value = value
     tx.data = self.signature + data
   
     if 'gasPrice' in kwargs:
@@ -132,3 +133,4 @@ c.hola()
 c.chau()
 
 contrato.closeBet.rawTransaction(1,2,3)
+contrato.closeBet(1,2,3)
