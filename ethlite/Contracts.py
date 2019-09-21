@@ -1,11 +1,12 @@
 from Abi import AbiEncoder
 from Transaction import Transaction
 from Account import Account
+from JsonRpc import JsonRpc
 
 
 class ContractFunction(object):
 
-  valid_kwargs = ['from', 'value', 'account', 'gasPrice']
+  valid_kwargs = ['from', 'value', 'account', 'gasPrice', 'gasLimit']
 
   def __init__(self,signature,inputs,ouputs,stateMutability,payable,constant,contract):
     self.contract = contract
@@ -81,9 +82,27 @@ class ContractFunction(object):
       pass
       #raise
 
+    arguments = [i['type'] for i in self.inputs]
+    data = AbiEncoder.encode(arguments, args)
 
+    tx = Transaction()
+    tx.nonce = self.contract.jsonrpc_provider.eth_getTransactionCount(self.contract.account.addr,'latest')['result']
+    tx.to = self.contract.address
+    tx.value = value
+    tx.data = self.signature + data
+  
+    if 'gasPrice' in kwargs:
+      tx.gasPrice = kwargs['gasPrice']
+    else:
+      tx.gasPrice = self.contract.default_gasPrice
+    
+  
+    if 'gasLimit' in kwargs:
+      tx.gasLimit = kwargs['gasLimit']
+    else:
+      tx.gasLimit = self.contract.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False))['result']
 
-
+    return tx.sign(account)
 
 
     def __call__(self, *args, **kwargs):
@@ -96,6 +115,11 @@ class ContractFunction(object):
 
 class Contract(object):
     def __init__(self, name, functions):
+      self.account 
+      self.address = '0x' # Contract Address
+      self.default_gasPrice
+      self.jsonrpc_provider
+
         self.name = name
         for f in functions:
             setattr(self,f,ContractFunction(f,self))

@@ -215,6 +215,11 @@ class AbiEncoder:
 
   @classmethod
   def encode(cls,arguments,values):
+
+    if len(arguments) != len(values):
+      #raise
+      pass 
+
     queue = []
     words = get_number_of_words(arguments)
     next_dynamic_argument_offset = words * 32

@@ -76,18 +76,28 @@ class Transaction(object):
   def to_tuple(self):
     return tuple(self)
   
-  def to_dict(self):
-    return {
-      'nonce': self.nonce,
-      'gasPrice': self.gasPrice,
-      'gasLimit': self.gasLimit,
-      'to': self.to,
-      'value': self.value,
-      'data': self.data,
-      'v': self.v,
-      'r': self.r,
-      's': self.s
-    }
+  def to_dict(self, signature=True):
+    if signature:
+      return {
+        'nonce': self.nonce,
+        'gasPrice': self.gasPrice,
+        'gasLimit': self.gasLimit,
+        'to': self.to,
+        'value': self.value,
+        'data': self.data,
+        'v': self.v,
+        'r': self.r,
+        's': self.s
+      }
+    else:
+      return {
+        'nonce': self.nonce,
+        'gasPrice': self.gasPrice,
+        'gasLimit': self.gasLimit,
+        'to': self.to,
+        'value': self.value,
+        'data': self.data
+      }
 
   def __str__(self):
     return str(self.to_dict())

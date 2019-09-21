@@ -4,6 +4,7 @@ from ecdsa    import SECP256k1
 
 secp256k1n = 115792089237316195423570985008687907852837564279074904382605163141518161494337
 
+
 class Sign:
   def __init__(self,s,even):
     self.signature = s

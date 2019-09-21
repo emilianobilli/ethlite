@@ -20,16 +20,16 @@ class JsonRpc:
 
   def doPost(self,data,timeout=None):
     return requests.post(
-        self.node,
-        data=data,
-        headers=headers,
-        timeout=self.default_timeout if timeout is None else timeout
+      self.node,
+      data=data,
+      headers=headers,
+      timeout=self.default_timeout if timeout is None else timeout
     ).json()
 
 
   def web3_sha3(self,hexstring):
     '''
-        Returns Keccak-256 (not the standardized SHA3-256) of the given data.
+      Returns Keccak-256 (not the standardized SHA3-256) of the given data.
     '''
     data = self.get_body_dict()
     data['method'] = 'web3_sha3'
@@ -38,7 +38,7 @@ class JsonRpc:
   
   def eth_blockNumber(self):
     '''
-        Returns the number of most recent block.
+      Returns the number of most recent block.
     '''
     data = self.get_body_dict()
     data['method'] = 'eth_blockNumber'
@@ -46,7 +46,7 @@ class JsonRpc:
 
   def eth_getBalance(self, address, tag):
     '''
-        Returns the balance of the account of given address.
+      Returns the balance of the account of given address.
     '''
     data = self.get_body_dict()
     data['method'] = 'eth_getBalance'
@@ -56,7 +56,7 @@ class JsonRpc:
 
   def eth_getTransactionCount(self,address,tag):
     '''
-        Returns the number of transactions sent from an address.
+      Returns the number of transactions sent from an address.
     '''
     data = self.get_body_dict()
     data['method'] = 'eth_getTransactionCount'
@@ -66,7 +66,7 @@ class JsonRpc:
 
   def eth_sendRawTransaction(self,data):
     '''
-        Creates new message call transaction or a contract creation for signed transactions.
+      Creates new message call transaction or a contract creation for signed transactions.
     '''
     data = self.get_body_dict()
     data['method'] = 'eth_sendRawTransaction'
@@ -75,7 +75,7 @@ class JsonRpc:
 
   def eth_call(self, obj, tag):
     '''
-        Executes a new message call immediately without creating a transaction on the block chain.
+      Executes a new message call immediately without creating a transaction on the block chain.
     '''
 
     data = self.get_body_dict()
@@ -84,17 +84,16 @@ class JsonRpc:
     data['params'].append(tag)
     return self.doPost(dumps(data))
 
-  def eth_estimateGas(self, obj, tag):
+  def eth_estimateGas(self, obj):
     '''
-        Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
-        The transaction will not be added to the blockchain. Note that the estimate may be significantly
-        more than the amount of gas actually used by the transaction, for a variety of reasons including 
-        EVM mechanics and node performance.
+      Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
+      The transaction will not be added to the blockchain. Note that the estimate may be significantly
+      more than the amount of gas actually used by the transaction, for a variety of reasons including 
+      EVM mechanics and node performance.
     '''
     data = self.get_body_dict()
     data['method'] = 'eth_estimateGas'
     data['params'].append(obj)
-    data['params'].append(tag)
     return self.doPost(dumps(data))
 
 
