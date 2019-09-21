@@ -104,9 +104,9 @@ class ContractFunction(object):
 
     return tx.sign(account)
 
-
     def __call__(self, *args, **kwargs):
-        print(self.obj.name, ":", self.name)
+        rawTransaction = self.rawTransaction(args,kwargs)
+        return self.contract.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)['result']
 
 
 
@@ -126,6 +126,8 @@ class Contract(object):
 
 
 c = Contract('Victor', ['hola', 'chau'])
+
+h = Contract.message('hola', gasPrice=1**18)
 c.hola()
 c.chau()
 
