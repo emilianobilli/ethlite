@@ -30,9 +30,9 @@ tx = Transaction(nonce=9, gasLimit=21000, gasPrice=20*10**9, value=10**18, data=
 
 Return a dict instance of the transaction. 
 
-*Params:*
-- signature: if True return the attributes/fields v, r, s
-- hexstring: if True return a integer values of the transaction enconding in hexstring (starting with 0x)
+**Params:**
+- **signature**: if True return the attributes/fields v, r, s
+- **hexstring**: if True return a integer values of the transaction enconding in hexstring (starting with 0x)
 
 ```
 tx.to_dict(signature=False,hexstring=True)
@@ -51,9 +51,9 @@ tx.to_dict(signature=False,hexstring=True)
 
 Return a RLP encoded of the signed transction
 
-*Params:*
+**Params:**
 
-- private_key: a private key
+- **private_key**: a private key
 
 ```
 rlp_encoded = tx.sign('0x4646464646464646464646464646464646464646464646464646464646464646')
@@ -61,7 +61,7 @@ print(rlp_encoded)
 '0xf86b098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a7640000801ba03b5da84dcc0783a0aa7a6fb580cb47004c7621b9945befb8e397ad5e97458ea99fee048566d0ce3144fe16da44ca8fbeef6f64001c2b3b3056daff9288fd3f05'
 ```
 
-*If chainId is setted in the transaction the signature agrees with eip155* (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
+*If **chainId** is setted in the transaction the signature agrees with eip155* (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
 
 ```
 tx.chainId = 1
