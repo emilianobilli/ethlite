@@ -166,16 +166,3 @@ class Contract(object):
       raise TypeError('account: expect a int, hexstring or Account instance')
 
 
-if __name__ == '__main__':
-  import json
-  address = '0xE8A3AF60260c4d5226ac6fC841A0AFD65BB4B4f1'
-  abi = json.loads('[{"constant":false,"inputs":[{"name":"u","type":"uint256"},{"name":"i","type":"int256"}],"name":"change","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getValues","outputs":[{"name":"","type":"uint256"},{"name":"","type":"int256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"uint256"}],"name":"change_uint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"int256"}],"name":"change_int","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"uint256"}],"name":"UintChange","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"int256"}],"name":"IntChange","type":"event"}]')
-  c = Contract(address,abi)
-  c.jsonrpc_provider = 'https://kovan.infura.io'
-  c.account = int('7a75b6b7d87cf3f0d9da5868c7c9dfb53b32175f09563b75159391c071d07bae',16)
-  print(dir(c))
-
-  ret = c.change_int.rawTransaction(2, gasPrice=21000000000)
-  print(ret)
-  ret = c.change_int(-2, gasPrice=21000000000)
-  print(ret)

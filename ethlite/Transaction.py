@@ -277,18 +277,3 @@ class Transaction(object):
       self.v = 27 if signature.even else 28 
 
     return self.rlp.encode(list(self))
-
-if __name__ == '__main__':
-  tx = Transaction()
-  tx.nonce = 2327
-  tx.gasPrice = 81 * 10 ** 9
-  tx.gasLimit = 21000
-  tx.to = '0x3535353535353535353535353535353535353536'
-  tx.value = 10 ** 16
-  tx.chainId = 42
-  pk = int('7a75b6b7d87cf3f0d9da5868c7c9dfb53b32175f09563b75159391c071d07bae',16)
-  print (tx.sign(pk))
-  
-
-  n = Account.fromhex('0x7a75b6b7d87cf3f0d9da5868c7c9dfb53b32175f09563b75159391c071d07bae')
-  print(n.addr)
