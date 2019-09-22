@@ -1,5 +1,17 @@
 from json import dumps
+from re import compile
+from re import match
+from re import IGNORECASE
+
 import requests
+
+valid_url_re = compile(
+                    r'^(?:http|ftp)s?://' # http:// or https://
+                    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+                    r'localhost|' #localhost...
+                    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+                    r'(?::\d+)?' # optional port
+                    r'(?:/?|[/?]\S+)$', IGNORECASE)
 
 class JsonRpc:
 
@@ -7,8 +19,10 @@ class JsonRpc:
   default_timeout = 10
 
   def __init__(self, node):
-    self.node = node
-
+    if match(valid_url_re, node) is not None:
+      self.node = node
+    else:
+      raise ValueError('JsonRpc(): %s is not a valid url' % node)
   @classmethod
   def get_body_dict(cls):
     return {
@@ -28,10 +42,14 @@ class JsonRpc:
     return requests.post(
       self.node,
       data=data,
-      headers=headers,
+      headers=self.headers,
       timeout=self.default_timeout if timeout is None else timeout
     ).json()
 
+  def net_version(self):
+    data = self.get_body_dict()
+    data['method'] = 'net_version'
+    return self.doPost(dumps(data))
 
   def web3_sha3(self,hexstring):
     '''
@@ -41,7 +59,12 @@ class JsonRpc:
     data['method'] = 'web3_sha3'
     data['params'].append(hexstring)
     return self.doPost(dumps(data))
-  
+
+  def eth_chainId(self):
+    data = self.get_body_dict()
+    data['method'] = 'eth_chainId'
+    return self.doPost(dumps(data))
+
   def eth_blockNumber(self):
     '''
       Returns the number of most recent block.
@@ -104,3 +127,6 @@ class JsonRpc:
 
 
 
+if __name__ == '__main__':
+  print(JsonRpc('https://kovan.infura.io').eth_chainId())
+  JsonRpc('kttp://algo.com')

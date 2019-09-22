@@ -95,6 +95,12 @@ class ContractFunction(object):
     else:
       tx.gasPrice = self.contract.default_gasPrice
     
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # Only for Kovan -> Change
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    tx.chainId = 42
+
+
     if 'gasLimit' in kwargs:
       tx.gasLimit = kwargs['gasLimit']
     else:
