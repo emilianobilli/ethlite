@@ -105,21 +105,28 @@ class ContractFunction(object):
       tx.gasLimit = kwargs['gasLimit']
     else:
       if jsonrpc_valid:
-        tx.gasLimit = self.contract.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False))['result']
+        print(self.contract.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False, hexstring=True)))
+        tx.gasLimit = self.contract.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False, hexstring=True))['result']
       else:
         # raise
         pass
 
     return tx.sign(account)
 
-    def __call__(self, *args, **kwargs):
-      jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
-      if jsonrpc_valid:
-        rawTransaction = self.rawTransaction(args,kwargs)
-        return self.contract.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)['result']
-      else:
-        # raise
-        pass
+  def commit(self, *args, **kwargs):
+    jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
+    if jsonrpc_valid:
+      rawTransaction = self.rawTransaction(*args,**kwargs)
+      return self.contract.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)['result']
+    else:
+      # raise
+      pass
+
+
+  def __call__(self,*args, **kwargs):
+    if self.constant == False:
+      return self.commit(*args,**kwargs)
+
 
 
 class Contract(object):
@@ -132,7 +139,7 @@ class Contract(object):
   def __load_abi(self):
     for attibute in self.abi:
       if attibute['type'] == 'function':
-        setattr(self,attibute['name'],ContractFunction.from_abi(attibute))
+        setattr(self,attibute['name'],ContractFunction.from_abi(attibute,self))
 
 
   @property
@@ -151,15 +158,24 @@ class Contract(object):
   def account(self, account):
     if isinstance(account,Account):
       self.__account = account
-    elif isinstance(account,'int'):
+    elif isinstance(account,int):
       self.__account = Account(account)
-    elif isinstance(account,'str') and account.startswith('0x'):
+    elif isinstance(account,str) and account.startswith('0x'):
       self.__account = Account.fromhex(account)
     else:
-      raise TypeError('account: expect a int, hextring or Account instance')
+      raise TypeError('account: expect a int, hexstring or Account instance')
 
 
 if __name__ == '__main__':
   import json
   address = '0xE8A3AF60260c4d5226ac6fC841A0AFD65BB4B4f1'
   abi = json.loads('[{"constant":false,"inputs":[{"name":"u","type":"uint256"},{"name":"i","type":"int256"}],"name":"change","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getValues","outputs":[{"name":"","type":"uint256"},{"name":"","type":"int256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"uint256"}],"name":"change_uint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"int256"}],"name":"change_int","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"uint256"}],"name":"UintChange","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"int256"}],"name":"IntChange","type":"event"}]')
+  c = Contract(address,abi)
+  c.jsonrpc_provider = 'https://kovan.infura.io'
+  c.account = int('7a75b6b7d87cf3f0d9da5868c7c9dfb53b32175f09563b75159391c071d07bae',16)
+  print(dir(c))
+
+  ret = c.change_int.rawTransaction(2, gasPrice=21000000000)
+  print(ret)
+  ret = c.change_int(-2, gasPrice=21000000000)
+  print(ret)

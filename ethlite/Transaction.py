@@ -19,7 +19,7 @@ class Transaction(object):
     if 'gasLimit' in kargs.keys():
       self.gasLimit = kargs['gasLimit']
     else:
-      self.__gasLimit = None
+      self.__gasLimit = 0
 
     if 'to' in kargs.keys():
       self.to = kargs['to']
@@ -76,26 +76,26 @@ class Transaction(object):
   def to_tuple(self):
     return tuple(self)
   
-  def to_dict(self, signature=True):
+  def to_dict(self, signature=True, hexstring=False):
     if signature:
       return {
-        'nonce': self.nonce,
-        'gasPrice': self.gasPrice,
-        'gasLimit': self.gasLimit,
+        'nonce': self.nonce if hexstring == False else hex(self.nonce),
+        'gasPrice': self.gasPrice if hexstring == False else hex(self.gasPrice),
+        'gas': self.gasLimit if hexstring == False else hex(self.gasLimit),
         'to': self.to,
-        'value': self.value,
+        'value': self.value if hexstring == False else hex(self.value),
         'data': self.data,
-        'v': self.v,
-        'r': self.r,
-        's': self.s
+        'v': self.v if hexstring == False else hex(self.v),
+        'r': self.r if hexstring == False else hex(self.r),
+        's': self.s if hexstring == False else hex(self.s)
       }
     else:
       return {
-        'nonce': self.nonce,
-        'gasPrice': self.gasPrice,
-        'gasLimit': self.gasLimit,
+        'nonce': self.nonce if hexstring == False else hex(self.nonce),
+        'gasPrice': self.gasPrice if hexstring == False else hex(self.gasPrice),
+        'gas': self.gasLimit if hexstring == False else hex(self.gasLimit),
         'to': self.to,
-        'value': self.value,
+        'value': self.value if hexstring == False else hex(self.value),
         'data': self.data
       }
 
@@ -270,12 +270,12 @@ class Transaction(object):
     self.r = signature.r
     self.s = signature.s
 
+    print(dir(signature))
     if self.chainId is not None:
       self.v = self.chainId * 2 + (35 if signature.even else 36)
     else:
       self.v = 27 if signature.even else 28 
 
-    print(list(self))
     return self.rlp.encode(list(self))
 
 if __name__ == '__main__':

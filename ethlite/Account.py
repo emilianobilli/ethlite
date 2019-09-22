@@ -22,7 +22,7 @@ class Sign:
 
     if self.s * 2 > secp256k1n:
       self.s = secp256k1n - self.s
-      self.event = not even
+      self.even = not even
     else:
       self.even = even
 

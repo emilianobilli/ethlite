@@ -236,7 +236,11 @@ def encode(var, value):
   var_type = get_type(var)
 
   if var_type['type'] == 'int':
-    raise NotImplementedError
+    if 'array' in var_type:
+      size = var_type['array']
+      return enc_list(value,size,enc_int)
+    else:
+      return enc_int(value)
 
   if var_type['type'] == 'uint':
     if 'array' in var_type:
