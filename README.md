@@ -21,6 +21,7 @@ tx.value = 10**18
 tx.data = ''
 tx.to = '0x3535353535353535353535353535353535353535'
 
+# Other way to initialize the tx
 tx = Transaction(nonce=9, gasLimit=21000, gasPrice=20*10**9, value=10**18, data='', to='0x3535353535353535353535353535353535353535')
 ```
 ### Methods
