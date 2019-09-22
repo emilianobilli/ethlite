@@ -2,6 +2,13 @@ from re import match
 from re import findall
 from sha3 import keccak_256
 
+'''
+  ToDo: 
+    - dec_bytes()
+    - dec_string()
+'''
+
+
 ARRAY_DYNAMIC_SIZE = -1
 
 def pad_left(word, char='0'):
@@ -37,15 +44,40 @@ def enc_bool(b):
   else:
     raise TypeError('enc_bool(): Expect a boolean and %s receive' % (type(b).__name__) )
 
+
+def dec_bool(word):
+  b = int(word,16)
+  if b == 1:
+    return True
+  return False
+
 def enc_address(address):
   if type(address).__name__ == 'str' and address.startswith('0x') and len(address) == 42:
     return pad_left(address)
   raise TypeError('enc_address(): Expect hexstring (start with 0x ) and len == 40')
 
+def dec_address(word):
+  return '0x' + word[24:]
+
 def enc_uint(uint):
   if (type(uint).__name__ == 'int' or type(uint).__name__ == 'long') and uint >= 0:
     return pad_left(hex(uint))
   raise TypeError('enc_uint(): Expect positive int or long')
+
+
+def dec_uint(word):
+  return int(word,16)
+
+def enc_int(value,bits=256):
+  if (type(value).__name__ == 'int' or type(value).__name__ == 'long'):
+    if value < 0:
+      return pad_left(hex((2**bits) + value ),'f')
+    else:
+      return pad_left(hex(value))
+
+def dec_int(word,bits=256):
+  num = int(word[64-(bits//4):],16)
+  return num - 2 ** bits if num > ((2**bits)/2) - 1 else num
 
 
 def enc_Tk(value, k, encfunc=None):
@@ -60,10 +92,23 @@ def enc_Tk(value, k, encfunc=None):
 
   raise TypeError('enc_uint_Tk(): Excpect a list')
 
+def dec_Tk(words, offset, k, decfunc=None):
+  value = []
+  for i in range(offset,offset+k):
+    value.append(decfunc(words[i]))
+  return value
 
-def enc_T(value, encfunc):
+def enc_T(value, encfunc=None):
   return enc_uint(len(value)) + enc_Tk(value,len(value),encfunc)
 
+
+def bytes_to_word_address(b):
+  assert(b % 32 == 0, 'Invalid word align (%d)' % b )
+  return b // 32
+
+def dec_T(words, offset, decfunc=None):
+  offset += bytes_to_word_address(dec_uint(words[offset]))
+  return dec_Tk(words, offset + 1 , dec_uint(words[offset]), decfunc)
 
 def string_to_hex(string):
     ret = ''
@@ -106,6 +151,21 @@ def enc_bytes_fixed(b):
 def enc_string(s):
   return enc_bytes(string_to_hex(s))
 
+def enc_list(value,size,encfunc):
+  if type(value).__name__ == 'list':
+    if size == ARRAY_DYNAMIC_SIZE:
+      return enc_T(value, encfunc)
+    else:
+      return enc_Tk(value,size, encfunc)
+  else:
+    raise TypeError('encode([%s]): Expect a list but %s received' % (var_type['type'],type(value).__name__))
+
+def dec_list(words,offset,size,decfunc):
+  if size == ARRAY_DYNAMIC_SIZE:
+    return (dec_T(words,offset,decfunc), 1)
+  else:
+    return (dec_Tk(words,offset,size,decfunc), size)
+
 
 def get_type(s):
   var_type_re = '(int|uint|bool|string|address|bytes)(\d{0,3})'
@@ -131,62 +191,90 @@ def get_type(s):
   return None
 
 
+def data_to_words(data):
+  return [data[x:x+64] for x in range(0, len(data), 64)]
+
+
+def decode(var, data, offset):
+  var_type = get_type(var)
+  words = data_to_words(data)
+
+  if var_type['type'] == 'int':
+    if 'array' in var_type:
+      size = var_type['array']
+      return dec_list(words,offset,size,dec_int)
+    else:
+      return (dec_int(words[offset],var_type['size']), 1)
+      
+  elif var_type['type'] == 'uint':
+    if 'array' in var_type:
+      size = var_type['array']
+      return dec_list(words,offset,size,dec_uint)
+    else:
+      return (dec_uint(words[offset]),1)
+    
+  elif var_type['type'] == 'bool':
+    if 'array' in var_type:
+      size = var_type['array']
+      return dec_list(words,offset,size, dec_bool)
+    else:
+      return (dec_bool(words[offset]),1)
+
+  elif var_type['type'] == 'address':
+    if 'array' in var_type:
+      size = var_type['array']
+      return dec_list(words,offset,size, dec_address)
+    else:
+      return (dec_address(words[offset]),1)
+
+  elif var_type['type'] == 'bytes':
+    raise NotImplementedError
+
+  elif var_type['type'] == 'string':
+    raise NotImplementedError
+
 def encode(var, value):
   var_type = get_type(var)
 
-  if var_type['type'] == 'int' or var_type['type'] == 'uint':
+  if var_type['type'] == 'int':
+    raise NotImplementedError
+
+  if var_type['type'] == 'uint':
     if 'array' in var_type:
-      if type(value).__name__ == 'list':
-        if var_type['array'] == ARRAY_DYNAMIC_SIZE:
-          return enc_T(value, enc_uint)
-        else:
-          return enc_Tk(value,var_type['array'], enc_uint)
-      else:
-        raise TypeError('encode([%s]): Expect a list but %s received' % (var_type['type'],type(value).__name__))
+      size = var_type['array']
+      return enc_list(value,size,enc_uint)
     else:
       return enc_uint(value)
       
 
   elif var_type['type'] == 'bool':
     if 'array' in var_type:
-      if type(value).__name__ == 'list':
-        if var_type['array'] == ARRAY_DYNAMIC_SIZE:
-          return enc_T(value, enc_bool)
-        else:
-          return enc_Tk(value,var_type['array'], enc_bool)
-      else:
-        raise TypeError('encode([%s]): Expect a list but %s received' % (var_type['type'],type(value).__name__))
+      size = var_type['array']
+      return enc_list(value,size,enc_bool)
     else:
       return enc_bool(value)
       
 
   elif var_type['type'] == 'address':
     if 'array' in var_type:
-      if type(value).__name__ == 'list':
-        if var_type['array'] == ARRAY_DYNAMIC_SIZE:
-          return enc_T(value, enc_address)
-        else:
-          return enc_Tk(value,var_type['array'], enc_address)
-      else:
-        raise TypeError('encode([%s]): Expect a list but %s received' % (var_type['type'],type(value).__name__))
+      size = var_type['array']
+      return enc_list(value,size,enc_address)
     else:
       return enc_address(value)
       
 
   elif var_type['type'] == 'string':
     if 'array' in var_type:
-      raise TypeError('encode(string): Array is not valid')
+      raise TypeError('encode(string): Array of strings is an invalid type')
     else:
       return enc_string(value)
-    
+
+
   elif var_type['type'] == 'bytes':
     if 'size' in var_type:
       if 'array' in var_type:
-        if type(value).__name__ == 'list':
-          if var_type['array'] == ARRAY_DYNAMIC_SIZE:
-            return enc_T(value,enc_bytes_fixed)
-          else:
-            return enc_Tk(value, var_type['array'], enc_bytes_fixed)
+        size = var_type['array']
+        return enc_list(value,size,enc_bytes_fixed)
       else:
         return enc_bytes_fixed(value)
     else:
@@ -219,7 +307,6 @@ class AbiEncoder:
     if len(arguments) != len(values):
       #raise
       pass 
-
     queue = []
     words = get_number_of_words(arguments)
     next_dynamic_argument_offset = words * 32
@@ -244,7 +331,19 @@ class AbiEncoder:
 
   @classmethod
   def decode(cls,arguments, data):
-    pass
+    ret = []
+
+    offset = 0
+    for arg in arguments:
+      decode_argument, i = decode(arg,data,offset)
+      offset = offset + i
+      ret.append(decode_argument)
+
+    if len(ret) != len(arguments):
+      # raise
+      pass
+
+    return ret
 
   @classmethod
   def function_signature(cls,function_name,arguments):
@@ -278,3 +377,14 @@ if __name__ == '__main__':
   print(AbiEncoder.encode(['bytes','bool','uint256[]'],["dave",True,[1,2,3]]))
   print(AbiEncoder.function_signature('sam',['bytes','bool','uint256[]']))
   print(AbiEncoder.event_hash('tito',['uint','int']))
+
+
+  a = AbiEncoder.encode(['uint[5]','bool'],[[1,2,3,4,5],False])
+  print(AbiEncoder.decode(['uint[5]','bool'],a))
+
+  b = AbiEncoder.encode(['uint[]','bool'],[[6,7,8,9,10],True])
+  print(AbiEncoder.decode(['uint[]','bool', 'address'],b))
+
+  i = enc_int(-2,16)
+  print(i)
+  print(dec_int(i,16))

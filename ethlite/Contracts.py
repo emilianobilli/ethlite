@@ -119,10 +119,12 @@ class ContractFunction(object):
 class Contract(object):
   def __init__(self,address,abi):
     self.address = address
-    self.__load_abi(Abi)
+    self.abi = abi
+    if self.abi is not None:
+      self.__load_abi()
     
-  def __load_abi(self,abi):
-    for attibute in abi:
+  def __load_abi(self):
+    for attibute in self.abi:
       if attibute['type'] == 'function':
         setattr(self,attibute['name'],ContractFunction.from_abi(attibute))
 
@@ -135,7 +137,6 @@ class Contract(object):
   def jsonrpc_provider(self, jsonrpc_provider):
     self.__jsonrpc_provider = JsonRpc(jsonrpc_provider)
   
-
   @property
   def account
     return self.account
