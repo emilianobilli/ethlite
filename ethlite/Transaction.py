@@ -58,7 +58,6 @@ class Transaction(object):
     else:
       self.__chainId = None
 
-
   def __iter__(self):
     self.i = 0
     return self
@@ -210,10 +209,7 @@ class Transaction(object):
   @chainId.setter
   def chainId(self,chainId):
     self.__chainId = self.integer_type(chainId)
-
-  ##
-  # v
-  #
+ 
   @property
   def v(self):
     return self.__v
@@ -222,9 +218,6 @@ class Transaction(object):
   def v(self,v):
     self.__v = self.integer_type(v)
 
-  ##
-  # r
-  #
   @property
   def r(self):
     return self.__r
@@ -233,9 +226,6 @@ class Transaction(object):
   def r(self,r):
     self.__r = self.integer_type(r)
 
-  ##
-  # s
-  #
   @property
   def s(self):
     return self.__s
@@ -270,7 +260,6 @@ class Transaction(object):
     self.r = signature.r
     self.s = signature.s
 
-    print(dir(signature))
     if self.chainId is not None:
       self.v = self.chainId * 2 + (35 if signature.even else 36)
     else:
