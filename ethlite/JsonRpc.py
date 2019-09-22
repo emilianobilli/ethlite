@@ -93,13 +93,13 @@ class JsonRpc:
     data['params'].append(tag)
     return self.doPost(dumps(data))
 
-  def eth_sendRawTransaction(self,data):
+  def eth_sendRawTransaction(self,rawTransaction):
     '''
       Creates new message call transaction or a contract creation for signed transactions.
     '''
     data = self.get_body_dict()
     data['method'] = 'eth_sendRawTransaction'
-    data['params'].append(data)
+    data['params'].append(rawTransaction)
     return self.doPost(dumps(data))
 
   def eth_call(self, obj, tag):
