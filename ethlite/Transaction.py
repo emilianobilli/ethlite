@@ -237,7 +237,7 @@ class Transaction(object):
   @staticmethod
   def sign_hash(h,private_key):
     if not isinstance(private_key,Account):
-      if type(pk).__name__ == 'str' and pk.startswith('0x'):
+      if type(private_key).__name__ == 'str' and private_key.startswith('0x'):
     	  private_key = Account.fromhex(private_key)
       else:
         private_key = Account(private_key)
