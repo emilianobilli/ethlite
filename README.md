@@ -17,6 +17,8 @@ ToDO
 
 ## Transaction 
 
+Class to create transactions
+
 ### Create a transaction
 
 ```
@@ -40,8 +42,8 @@ tx = Transaction(nonce=9, gasLimit=21000, gasPrice=20*10**9, value=10**18, data=
 Return a dict instance of the transaction. 
 
 **Params:**
-- **signature**: if True return the attributes/fields v, r, s
-- **hexstring**: if True return a integer values of the transaction enconding in hexstring (starting with 0x)
+- **signature**: if True -> return the attributes/fields v, r, s
+- **hexstring**: if True -> return a integer values of the transaction enconding in hexstring (starting with 0x)
 
 ```
 tx.to_dict(signature=False,hexstring=True)
@@ -81,4 +83,52 @@ Transaction({'nonce': 9, 'gasPrice': 20000000000, 'gas': 21000, 'to': '0x3535353
 
 print(rlp_encoded)
 '0xf86c098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a76400008026a05f3d10a56c633f476ffffe3595353e480611dba01124fd3d5334d0faacf14b50a028ee8c85a63ae513a58871cba502f8077f79581460e76dbd272fff9a9aad76bc'
+```
 
+## Account
+
+Class to manipulate private/public key
+
+**ToDo: compliance with eip55** (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md)
+
+Actual work according with the yellow paper -> A(pr) = B(96..255)(KEC(ECDSAPUBKEY(pr)))
+
+
+### Import private key
+
+```
+>> from ethlite.Account import Account
+
+>> addr = Account(0x4646464646464646464646464646464646464646464646464646464646464646)
+>> print(addr.addr)
+'0x9d8a62f656a8d1615c1294fd71e9cfb3e4855a4f'
+
+```
+
+### Methods
+
+#### sign(message)
+Perform a keccak_256(message) and them sign it with the private key. Return an instance of *Sign()*  representing a signature:
+
+**Params**
+- message: The bytearray to be signed
+
+```
+>> addr.sign(bytearray.fromhex('ec098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a764000080018080'))
+
+5f3d10a56c633f476ffffe3595353e480611dba01124fd3d5334d0faacf14b5028ee8c85a63ae513a58871cba502f8077f79581460e76dbd272fff9a9aad76bc
+```
+
+#### sign_digest(digest)
+Perform a sign of a digested message
+
+**Params**
+- digest: The hash to be signed
+
+```
+>> to_sign = keccak_256(bytearray.fromhex('ec098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a764000080018080'))
+>> to_sign.hexdigest()
+'daf5a779ae972f972197303d7b574746c7ef83eadac0f2791ad23db92e4c8e53'
+>> addr.sign_digest(to_sign.digest())
+5f3d10a56c633f476ffffe3595353e480611dba01124fd3d5334d0faacf14b5028ee8c85a63ae513a58871cba502f8077f79581460e76dbd272fff9a9aad76bc
+```
