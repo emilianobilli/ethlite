@@ -144,8 +144,8 @@ class Contract(object):
     self.__jsonrpc_provider = JsonRpc(jsonrpc_provider)
   
   @property
-  def account
-    return self.account
+  def account(self):
+    return self.__account
   
   @account.setter
   def account(self, account):
@@ -159,11 +159,7 @@ class Contract(object):
       raise TypeError('account: expect a int, hextring or Account instance')
 
 
-c = Contract('Victor', ['hola', 'chau'])
-
-h = Contract.message('hola', gasPrice=1**18)
-c.hola()
-c.chau()
-
-contrato.closeBet.rawTransaction(1,2,3)
-contrato.closeBet(1,2,3)
+if __name__ == '__main__':
+  import json
+  address = '0xE8A3AF60260c4d5226ac6fC841A0AFD65BB4B4f1'
+  abi = json.loads('[{"constant":false,"inputs":[{"name":"u","type":"uint256"},{"name":"i","type":"int256"}],"name":"change","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getValues","outputs":[{"name":"","type":"uint256"},{"name":"","type":"int256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"uint256"}],"name":"change_uint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"int256"}],"name":"change_int","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"uint256"}],"name":"UintChange","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"int256"}],"name":"IntChange","type":"event"}]')
