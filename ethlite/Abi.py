@@ -8,7 +8,6 @@ from sha3 import keccak_256
     - dec_string()
 '''
 
-
 ARRAY_DYNAMIC_SIZE = -1
 
 def pad_left(word, char='0'):

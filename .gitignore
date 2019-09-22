@@ -1,2 +1,8 @@
 
 *.pyc
+*.dll
+*.bat
+*.sol
+*.exe
+*.bin
+*.abi
