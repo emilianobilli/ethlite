@@ -8,8 +8,10 @@ ToDO
 
 ## Contents
 
-- [Transactions](URL "https://github.com/emilianobilli/ethlite#transaction")
+- [Transaction](URL "https://github.com/emilianobilli/ethlite#transaction")
+- [Account]
 - [JsonRpc]
+- [Contract]
 
 
 
