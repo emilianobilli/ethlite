@@ -105,7 +105,6 @@ class ContractFunction(object):
       tx.gasLimit = kwargs['gasLimit']
     else:
       if jsonrpc_valid:
-        print(self.contract.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False, hexstring=True)))
         tx.gasLimit = self.contract.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False, hexstring=True))['result']
       else:
         # raise
@@ -122,6 +121,18 @@ class ContractFunction(object):
       # raise
       pass
 
+  def call(self, *arg, **kwargs):
+    jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
+    if jsonrpc_valid:
+
+      arguments = [i['type'] for i in self.inputs]
+      data = self.signature + AbiEncoder.encode(arguments, args)
+      
+      result = self.contract.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},'latest')['result']
+      print(result)
+    else:
+      # raise
+      pass
 
   def __call__(self,*args, **kwargs):
     if self.constant == False:
@@ -166,3 +177,9 @@ class Contract(object):
       raise TypeError('account: expect a int, hexstring or Account instance')
 
 
+if __name__ == '__main__':
+  address = '0xE8A3AF60260c4d5226ac6fC841A0AFD65BB4B4f1'
+  abi = '[{"constant":false,"inputs":[{"name":"u","type":"uint256"},{"name":"i","type":"int256"}],"name":"change","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getValues","outputs":[{"name":"","type":"uint256"},{"name":"","type":"int256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"uint256"}],"name":"change_uint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"int256"}],"name":"change_int","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"uint256"}],"name":"UintChange","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"int256"}],"name":"IntChange","type":"event"}]'
+  contract = Contract(abi,address)
+  contract.jsonrpc_provider = 'https://kovan.infura.io'
+  contract.getValues()
