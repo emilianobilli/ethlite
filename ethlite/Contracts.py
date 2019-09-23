@@ -125,6 +125,7 @@ class ContractFunction(object):
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
     if jsonrpc_valid:
 
+      print(args)
       arguments = [i['type'] for i in self.inputs]
       data = self.signature + AbiEncoder.encode(arguments, args)
       
