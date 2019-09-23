@@ -177,7 +177,7 @@ def get_type(s):
     }
 
     if var.group(2) is not None and var.group(2) != '':
-      ret['size'] = var.group(2)
+      ret['size'] = int(var.group(2))
 
     array = [l.replace('[','').replace(']','') for l in findall('\[\d*\]',s)]
     if array != []:
