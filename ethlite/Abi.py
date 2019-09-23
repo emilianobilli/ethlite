@@ -75,6 +75,8 @@ def enc_int(value,bits=256):
       return pad_left(hex(value))
 
 def dec_int(word,bits=256):
+  print(bits)
+  print(type(bites))
   num = int(word[64-(bits//4):],16)
   return num - 2 ** bits if num > ((2**bits)/2) - 1 else num
 
