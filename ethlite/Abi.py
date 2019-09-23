@@ -104,7 +104,7 @@ def enc_T(value, encfunc=None):
 
 
 def bytes_to_word_address(b):
-  assert(b % 32 == 0, 'Invalid word align (%d)' % b )
+  assert b % 32 == 0, 'Invalid word align (%d)' % b 
   return b // 32
 
 def dec_T(words, offset, decfunc=None):
