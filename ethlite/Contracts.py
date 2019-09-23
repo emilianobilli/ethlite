@@ -125,10 +125,13 @@ class ContractFunction(object):
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
     if jsonrpc_valid:
 
-      print(args)
+
       arguments = [i['type'] for i in self.inputs]
-      data = self.signature + AbiEncoder.encode(arguments, args)
-      
+      if len(arguments) != 0:
+        data = self.signature + AbiEncoder.encode(arguments, args)
+      else:
+        data = self.signature
+
       result = self.contract.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},'latest')['result']
       print(result)
     else:
