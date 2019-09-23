@@ -135,7 +135,7 @@ class ContractFunction(object):
       result = self.contract.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},'latest')['result']
 
       outputs = [o['type'] for o in self.outputs ]
-      return AbiEncoder.decode(outputs,result)
+      return AbiEncoder.decode(outputs,result[2:])
 
     else:
       # raise
