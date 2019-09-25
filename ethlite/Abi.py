@@ -75,8 +75,6 @@ def enc_int(value,bits=256):
       return pad_left(hex(value))
 
 def dec_int(word,bits=256):
-  print(bits)
-  print(type(bits))
   num = int(word[64-(bits//4):],16)
   return num - 2 ** bits if num > ((2**bits)/2) - 1 else num
 
@@ -234,6 +232,29 @@ def decode(var, data, offset):
   elif var_type['type'] == 'string':
     raise NotImplementedError
 
+
+def encode_event_topic(var, value):
+  var_type = get_type(var):
+
+  if var_type['type'] == 'int' or var_type['type'] == 'uint' or var_type['type'] == 'bool' or var_type['type'] == 'address':
+    if 'array' in var_type:
+      pass # raise invalid indexed type    
+    return encode(var,value)
+  elif var_type['type'] == 'string':
+    return '0x' + keccak_256(bytearray.fromhex(string_to_hex(var))).hexdigest()
+  elif var_type['type'] == 'bytes':
+    if 'size' in var_type:
+      if 'array' in var_type:
+        pass # raise invalid indexed type
+      else:
+        return encode(var, value):
+    else:
+      to_hash = var if var.startswith('0x') else string_to_hex(var)
+      return '0x' + keccak_256(bytearray.fromhex(string_to_hex(var))).hexdigest()
+
+  return None
+
+
 def encode(var, value):
   var_type = get_type(var)
 
@@ -307,11 +328,27 @@ def is_dynamic(arg):
 class AbiEncoder:
 
   @classmethod
+  def encode_event_topic(cls, arguments, values):
+
+    if len(arguments) != len(values):
+      #raise
+      pass 
+
+    topics = []
+    i = 0
+    for arg in arguments:
+      topics.append(encode_event_topic(arg,values[i]))
+      i = i + 1
+
+    return topics
+
+  @classmethod
   def encode(cls,arguments,values):
 
     if len(arguments) != len(values):
       #raise
       pass 
+
     queue = []
     words = get_number_of_words(arguments)
     next_dynamic_argument_offset = words * 32

@@ -125,8 +125,14 @@ class JsonRpc:
     data['params'].append(obj)
     return self.doPost(dumps(data))
 
-
+  def eth_getLogs(self,obj):
+  '''
+    Returns an array of all logs matching a given filter object.
+  '''
+    data = self.get_body_dict()
+    data['method'] = 'eth_getLogs'
+    data['params'].append(obj)
+    return self.doPost(dumps(data))
 
 if __name__ == '__main__':
   print(JsonRpc('https://kovan.infura.io').eth_chainId())
-  JsonRpc('kttp://algo.com')

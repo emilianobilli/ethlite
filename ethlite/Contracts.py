@@ -4,9 +4,112 @@ from Account import Account
 from JsonRpc import JsonRpc
 
 
-class ContractFunction(object):
 
-  valid_kwargs = ['from', 'value', 'account', 'gasPrice', 'gasLimit']
+class EventSet:
+  valid_kwargs = ['fromBlock', 'toBlock', 'blockHash']
+
+  def __init__(self,contract):
+    self.contract = contract
+
+  def commit_filter_query(self,filter_query,**kwargs):
+    for kw in kwargs:
+      if kw in valid_kwargs:
+        filter_query[kw] = kwargs[kw]
+    
+    jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
+
+    if jsonrpc_valid:
+      result = self.contract.jsonrpc_provider.eth_getLogs(filter_query)
+
+    return result
+
+  def all(self,**kwargs):  
+    filter_query = { 
+      'address': self.contract.address,
+    }
+    return self.commit_filter_query(filter_query,**kwargs)
+
+
+class Event(EventSet):
+  def __init__(self, abi=None, contract=None):
+
+    if abi is None:
+      raise ValueError('Event(): abi can not be None')
+
+    if abi['type'] != 'event':
+      raise TypeError('Event(): Invalid abi type, expected -> event')
+
+    self.abi = abi
+    self.name = abi['name']
+    self.indexed = []
+    self.inputs = []
+    self.contract = contract
+
+    inputs = abi['inputs']
+    for i in inputs:
+      if i['indexed']:
+        self.indexed.append(i['type'])
+      else:
+        self.inputs.append(i['type'])
+
+    self.signature = AbiEncoder.event_signature(self.name, self.indexed + self.inputs)
+
+  def parse_data(self,data):
+    pass
+
+  def topic(self, *indexed):
+    n = len(*indexed)
+    topics = AbiEncoder.encode_event_topic(self.indexed[:n],*indexed)
+    topics = [self.signaure] + topics
+    return topics
+
+  def __call__(self,*indexed,**kwargs):
+
+    filter = { 
+      'address': self.contract.address,
+      'topics': self.topic(*indexed),
+    }
+    return self.commit_filter_query(filter,**kwargs)
+  
+  def all():
+    pass
+
+
+class EventParser:
+  def __init__(self,abi=None):
+    if abi is not None:
+      
+
+      self.name = abi['name']
+      self.inputs = abi['inputs'] # -> with type,indexed and name
+      self.signature = AbiEncoder.event_signature(self.name, [i['type'] for i in self.inputs] )
+
+  @staticmethod
+  def count_indexed(inputs):
+    n = 0
+    for i in inputs:
+      if i['indexed']:
+        n = n + 1
+    return n
+
+  def fromLog(self,log):
+    if 'topics' in log and len(log['topics']) == self.count_indexed(self.inputs) + 1:
+      topics = log['topics']
+      if topics[0] != signature:
+        pass # raise invalid Log
+
+      event = Event()
+      setattr(event,'name',self.name)
+
+      for i in range(1,self.count_indexed()-1):
+        if self.inputs[i]['type'] == 'str'or self.inputs[i]
+
+
+      if 'data' in log and (log['data'] != '' or log['data'] != '0x'):
+
+
+
+class ContractFunction(object):
 
   def __init__(self,signature,inputs,ouputs,stateMutability,payable,constant,contract):
     self.contract = contract
@@ -21,7 +124,7 @@ class ContractFunction(object):
   @classmethod
   def from_abi(cls, abi, contract):
     if abi['type'] != 'function':
-      raise TypeError('ContractFunction.from_abi(): Invalid abi, expect type function')
+      raise TypeError('ContractFunction.from_abi(): Invalid abi, expected type -> function')
 
     signature = AbiEncoder.function_signature(abi['name'], [i['type'] for i in abi['inputs'] ])
     return cls(signature,abi['inputs'],abi['outputs'],abi['stateMutability'],abi['payable'],abi['constant'],contract)
@@ -125,7 +228,6 @@ class ContractFunction(object):
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
     if jsonrpc_valid:
 
-
       arguments = [i['type'] for i in self.inputs]
       if len(arguments) != 0:
         data = self.signature + AbiEncoder.encode(arguments, args)
@@ -144,21 +246,26 @@ class ContractFunction(object):
   def __call__(self,*args, **kwargs):
     if self.constant == False:
       return self.commit(*args,**kwargs)
+    else:
+      return self.call(*args,**kwargs)
 
 
-
+class FunctionSet(object):
+  pass
 
 class Contract(object):
   def __init__(self,address,abi):
     self.address = address
     self.abi = abi
-    if self.abi is not None:
-      self.__load_abi()
-    
-  def __load_abi(self):
+    self.events = EventSet(self)
+    self.functions = FunctionSet()
+
     for attibute in self.abi:
       if attibute['type'] == 'function':
-        setattr(self,attibute['name'],ContractFunction.from_abi(attibute,self))
+        setattr(self.functions,attibute['name'],ContractFunction.from_abi(attibute,self))
+
+      if attibute['type'] == 'event':
+        setattr(self.event,attibute['name'],Event(attibute,self))
 
 
   @property
@@ -191,5 +298,6 @@ if __name__ == '__main__':
   abi = json.loads('[{"constant":false,"inputs":[{"name":"u","type":"uint256"},{"name":"i","type":"int256"}],"name":"change","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getValues","outputs":[{"name":"","type":"uint256"},{"name":"","type":"int256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"uint256"}],"name":"change_uint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"int256"}],"name":"change_int","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"uint256"}],"name":"UintChange","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"int256"}],"name":"IntChange","type":"event"}]')
   contract = Contract(address,abi)
   contract.jsonrpc_provider = 'https://kovan.infura.io'
-  o = contract.getValues.call()
+  o = contract.functions.getValues.call()
+  contract.events.Transfer()
   print(o)
