@@ -51,6 +51,7 @@ def dec_bool(word):
   return False
 
 def enc_address(address):
+  print(address)
   if type(address).__name__ == 'str' and address.startswith('0x') and len(address) == 42:
     return pad_left(address)
   raise TypeError('enc_address(): Expect hexstring (start with 0x ) and len == 40')
@@ -234,8 +235,9 @@ def decode(var, data, offset):
 
 
 def encode_event_topic(var, value):
-  var_type = get_type(var):
-
+  var_type = get_type(var)
+  print(var)
+  print(value)
   if var_type['type'] == 'int' or var_type['type'] == 'uint' or var_type['type'] == 'bool' or var_type['type'] == 'address':
     if 'array' in var_type:
       pass # raise invalid indexed type    
@@ -247,7 +249,7 @@ def encode_event_topic(var, value):
       if 'array' in var_type:
         pass # raise invalid indexed type
       else:
-        return encode(var, value):
+        return encode(var, value)
     else:
       to_hash = var if var.startswith('0x') else string_to_hex(var)
       return '0x' + keccak_256(bytearray.fromhex(string_to_hex(var))).hexdigest()
@@ -328,16 +330,15 @@ def is_dynamic(arg):
 class AbiEncoder:
 
   @classmethod
-  def encode_event_topic(cls, arguments, values):
+  def encode_event_topic(cls, arguments, *values):
 
-    if len(arguments) != len(values):
-      #raise
+    if len(arguments) != len(*values):
       pass 
 
     topics = []
     i = 0
     for arg in arguments:
-      topics.append(encode_event_topic(arg,values[i]))
+      topics.append('0x' + encode_event_topic(arg,values[i]))
       i = i + 1
 
     return topics

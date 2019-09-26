@@ -5,6 +5,22 @@ from JsonRpc import JsonRpc
 
 
 
+class EventLogDict:
+  def __init__(self,blockHash,transactionHash,blockNumber):
+    self.blockHash = blockHash
+    self.transactionHash = transactionHash
+    self.blockNumber = blockNumber
+
+  def __repr__(self):
+    return 'EventLogDict(%s)' % str(dict(self))
+
+  def __iter__(self):
+    yield 'blockHash', self.blockHash
+
+  def __getitem__(self,key):
+    return getattr(self,key)
+  
+
 class EventSet:
   valid_kwargs = ['fromBlock', 'toBlock', 'blockHash']
 
@@ -13,7 +29,7 @@ class EventSet:
 
   def commit_filter_query(self,filter_query,**kwargs):
     for kw in kwargs:
-      if kw in valid_kwargs:
+      if kw in self.valid_kwargs:
         filter_query[kw] = kwargs[kw]
     
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
@@ -52,29 +68,32 @@ class Event(EventSet):
       else:
         self.inputs.append(i['type'])
 
-    self.signature = AbiEncoder.event_signature(self.name, self.indexed + self.inputs)
+    self.signature = AbiEncoder.event_hash(self.name, self.indexed + self.inputs)
 
   def parse_data(self,data):
     pass
 
   def topic(self, *indexed):
-    n = len(*indexed)
-    topics = AbiEncoder.encode_event_topic(self.indexed[:n],*indexed)
-    topics = [self.signaure] + topics
+    if indexed is not ():
+      n = len(*indexed)
+      topics = AbiEncoder.encode_event_topic(self.indexed[:n],*indexed)
+    else:
+      topics = []
+    topics = [self.signature] + topics
     return topics
 
   def __call__(self,*indexed,**kwargs):
 
-    filter = { 
+    filter_query = { 
       'address': self.contract.address,
       'topics': self.topic(*indexed),
     }
-    return self.commit_filter_query(filter,**kwargs)
+    return self.commit_filter_query(filter_query,**kwargs)
   
   def all():
     pass
 
-
+'''
 class EventParser:
   def __init__(self,abi=None):
     if abi is not None:
@@ -82,7 +101,7 @@ class EventParser:
 
       self.name = abi['name']
       self.inputs = abi['inputs'] # -> with type,indexed and name
-      self.signature = AbiEncoder.event_signature(self.name, [i['type'] for i in self.inputs] )
+      self.signature = AbiEncoder.event_hash(self.name, [i['type'] for i in self.inputs] )
 
   @staticmethod
   def count_indexed(inputs):
@@ -107,7 +126,7 @@ class EventParser:
 
       if 'data' in log and (log['data'] != '' or log['data'] != '0x'):
 
-
+'''
 
 class ContractFunction(object):
 
@@ -265,7 +284,7 @@ class Contract(object):
         setattr(self.functions,attibute['name'],ContractFunction.from_abi(attibute,self))
 
       if attibute['type'] == 'event':
-        setattr(self.event,attibute['name'],Event(attibute,self))
+        setattr(self.events,attibute['name'],Event(attibute,self))
 
 
   @property
@@ -299,5 +318,9 @@ if __name__ == '__main__':
   contract = Contract(address,abi)
   contract.jsonrpc_provider = 'https://kovan.infura.io'
   o = contract.functions.getValues.call()
-  contract.events.Transfer()
   print(o)
+  print(dir(contract.events))
+  print(contract.events.all(fromBlock='0x0'))
+  e = EventLogDict(1,2,3)
+  print(e['blockHash'])
+  print(dict(e))
