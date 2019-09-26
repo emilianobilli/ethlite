@@ -55,7 +55,7 @@ class EventSet:
       for self_event in self.__dict__.keys():
         if self_event == 'contract' or self_event == 'valid_kwargs':
           continue
-        if self.__dict__[self_event].signature == self.get_event_hash_from_log(log):
+        if self.__dict__[self_event].event_hash == self.get_event_hash_from_log(log):
           ret = ret + self.__dict__[self_event].parse_log_data([log])
 
     return ret
