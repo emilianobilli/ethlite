@@ -124,40 +124,6 @@ class Event(EventSet):
   def all():
     pass
 
-'''
-class EventParser:
-  def __init__(self,abi=None):
-    if abi is not None:
-      
-
-      self.name = abi['name']
-      self.inputs = abi['inputs'] # -> with type,indexed and name
-      self.event_hash = AbiEncoder.event_hash(self.name, [i['type'] for i in self.inputs] )
-
-  @staticmethod
-  def count_indexed(inputs):
-    n = 0
-    for i in inputs:
-      if i['indexed']:
-        n = n + 1
-    return n
-
-  def fromLog(self,log):
-    if 'topics' in log and len(log['topics']) == self.count_indexed(self.inputs) + 1:
-      topics = log['topics']
-      if topics[0] != signature:
-        pass # raise invalid Log
-
-      event = Event()
-      setattr(event,'name',self.name)
-
-      for i in range(1,self.count_indexed()-1):
-        if self.inputs[i]['type'] == 'str'or self.inputs[i]
-
-
-      if 'data' in log and (log['data'] != '' or log['data'] != '0x'):
-
-'''
 
 class ContractFunction(object):
 
@@ -300,7 +266,10 @@ class ContractFunction(object):
       return self.call(*args,**kwargs)
 
 
-class FunctionSet(object):
+class FunctionSet:
+  '''
+    A abstract class to contain all contract's methods/functions
+  '''
   pass
 
 class Contract(object):
