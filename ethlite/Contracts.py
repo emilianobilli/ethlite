@@ -35,9 +35,30 @@ class EventSet:
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
 
     if jsonrpc_valid:
-      result = self.contract.jsonrpc_provider.eth_getLogs(filter_query)
+      response = self.contract.jsonrpc_provider.eth_getLogs(filter_query)
+      if 'result' in response:
+        return self.parse_response(response['result'])
+      
+      ##
+      # raise 
 
-    return result
+    ##
+    # raise
+
+  def get_event_hash_from_log(self, log):
+    return log['topics'][0]
+
+
+  def parse_log_data(self, logs):
+    ret = []
+    for log in logs:
+      for self_event in self.__dict__.keys():
+        if self_event == 'contract' or self_event == 'valid_kwargs':
+          continue
+        if self.__dict__[self_event].signature == self.get_event_hash_from_log(log):
+          ret = ret + self.__dict__[self_event].parse_log_data([log]))
+
+    return ret
 
   def all(self,**kwargs):  
     filter_query = { 
@@ -68,10 +89,16 @@ class Event(EventSet):
       else:
         self.inputs.append(i['type'])
 
-    self.signature = AbiEncoder.event_hash(self.name, self.indexed + self.inputs)
+    self.event_hash = AbiEncoder.event_hash(self.name, self.indexed + self.inputs)
 
-  def parse_data(self,data):
-    pass
+
+  def parse_log_data(self,logs):
+    ret = []
+    for log in logs:
+      if self.event_hash == self.get_event_hash_from_log(log):
+        event = EventLogDict(log['blockHash'],log['transactionHash'],log['blockNumber'])
+        ret.append(event)
+    return ret
 
   def topic(self, *indexed):
     if indexed is not ():
@@ -79,7 +106,7 @@ class Event(EventSet):
       topics = AbiEncoder.encode_event_topic(self.indexed[:n],*indexed)
     else:
       topics = []
-    topics = [self.signature] + topics
+    topics = [self.event_hash] + topics
     return topics
 
   def __call__(self,*indexed,**kwargs):
@@ -101,7 +128,7 @@ class EventParser:
 
       self.name = abi['name']
       self.inputs = abi['inputs'] # -> with type,indexed and name
-      self.signature = AbiEncoder.event_hash(self.name, [i['type'] for i in self.inputs] )
+      self.event_hash = AbiEncoder.event_hash(self.name, [i['type'] for i in self.inputs] )
 
   @staticmethod
   def count_indexed(inputs):
