@@ -37,7 +37,7 @@ class EventSet:
     if jsonrpc_valid:
       response = self.contract.jsonrpc_provider.eth_getLogs(filter_query)
       if 'result' in response:
-        return self.parse_response(response['result'])
+        return self.parse_log_data(response['result'])
       
       ##
       # raise 
