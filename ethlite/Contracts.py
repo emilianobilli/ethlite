@@ -6,7 +6,8 @@ from JsonRpc import JsonRpc
 
 
 class EventLogDict:
-  def __init__(self,blockHash,transactionHash,blockNumber):
+  def __init__(self,name,blockHash,transactionHash,blockNumber):
+    self.name = name
     self.blockHash = blockHash
     self.transactionHash = transactionHash
     self.blockNumber = blockNumber
@@ -15,7 +16,10 @@ class EventLogDict:
     return 'EventLogDict(%s)' % str(dict(self))
 
   def __iter__(self):
+    yield 'name', self.name
     yield 'blockHash', self.blockHash
+    yield 'transactionHash', self.transactionHash
+    yield 'blockNumber', self.blockNumber
 
   def __getitem__(self,key):
     return getattr(self,key)
@@ -96,7 +100,7 @@ class Event(EventSet):
     ret = []
     for log in logs:
       if self.event_hash == self.get_event_hash_from_log(log):
-        event = EventLogDict(log['blockHash'],log['transactionHash'],log['blockNumber'])
+        event = EventLogDict(self.name, log['blockHash'],log['transactionHash'],log['blockNumber'])
         ret.append(event)
     return ret
 
