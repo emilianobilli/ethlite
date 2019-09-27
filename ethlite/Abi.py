@@ -265,7 +265,7 @@ def decode_event_topic(var, value):
   if var_type['type'] == 'int' or var_type['type'] == 'uint' or var_type['type'] == 'bool' or var_type['type'] == 'address':
     if 'array' in var_type:
       pass # raise invalid indexed type    
-    return decode(var,value)
+    return decode(var,value,0)
 
   elif var_type['type'] == 'string':
     return value
@@ -275,7 +275,7 @@ def decode_event_topic(var, value):
       if 'array' in var_type:
         pass # raise invalid indexed type
       else:
-        return decode(var, value)
+        return decode(var, value,0)
 
     else:
       return value
