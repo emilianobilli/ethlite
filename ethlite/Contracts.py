@@ -4,9 +4,16 @@ from Transaction import Transaction
 from Account import Account
 from JsonRpc import JsonRpc
 
+class ContractJsonRpcError(Exception):
+  pass
 
 
 class EventLogDict:
+  '''
+    Represents the parsed return of the logs. Each time a contract 
+    is queried for logs, it returns a list of instances of objects 
+    of the EvenDictLog class
+  '''
   def __init__(self,event,blockHash,transactionHash,blockNumber):
     self.event_name = event
     self.blockHash = blockHash
@@ -25,6 +32,9 @@ class EventLogDict:
   
 
 class EventSet:
+  '''
+    A abstract class to contain all events 
+  '''
   valid_kwargs = ['fromBlock', 'toBlock', 'blockHash']
 
   def __init__(self,contract):
@@ -37,16 +47,15 @@ class EventSet:
     
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
 
-    if jsonrpc_valid:
-      response = self.contract.jsonrpc_provider.eth_getLogs(filter_query)
-      if 'result' in response:
-        return self.parse_log_data(response['result'])
-      
-      ##
-      # raise 
+    if not jsonrpc_valid:
+      raise ContractJsonRpcError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
+    
+    response = self.contract.jsonrpc_provider.eth_getLogs(filter_query)
+    if 'result' in response:
+      return self.parse_log_data(response['result'])
+    else:
+      raise JsonRpcError(str(response))
 
-    ##
-    # raise
 
   def get_event_hash_from_log(self, log):
     return log['topics'][0]
@@ -93,7 +102,6 @@ class Event(EventSet):
 
     self.event_hash = AbiEncoder.event_hash(self.name, self.indexed + self.inputs)
 
-
   def parse_log_data(self,logs):
     ret = []
     for log in logs:
@@ -136,6 +144,13 @@ class Event(EventSet):
 
 
 class ContractFunction(object):
+  '''
+    This class represents a function of the contract. 
+    Its behavior varies depending on its state of mutability. 
+    The functions that modify the blockchain are executed generating a transaction, 
+    signing and send it with a eth_sendRawTransaction(), in the other hand 
+    the query functions calling the rpc method: eth_Call()
+  '''
 
   def __init__(self,signature,inputs,ouputs,stateMutability,payable,constant,contract):
     self.contract = contract
@@ -161,10 +176,13 @@ class ContractFunction(object):
           Solamente las llamadas a funciones generan cambios de estado en el contrato pueden
           generar transacciones
       '''
-      pass
-        # raise
+      TypeError('rawTransaction(): This function is constant')
+
 
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
+
+    if not jsonrpc_valid:
+      raise ContractJsonRpcError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
 
     if 'value' in kwargs and self.payable == False:
       raise ValueError('rawTransaction(): value received to a non-payable function')
@@ -180,22 +198,17 @@ class ContractFunction(object):
         raise TypeError('rawTransaction(): Expect a private_key in one of these formats-> int, hextring or Account() instance')          
     else:
       '''
-        En este punto, si no se pasa la account por parametro
-        hay que revisar si el contrato tiene la variable account para firmar la 
-        transaccion con ella
+        At this point, if the account is not passed by parameter
+        you have to check if the contract has the account variable to sign the
+        transaction with her
       '''
       if self.contract.account is not None and isinstance(self.contract.account,Account):
         account = self.contract.account
       else:
         raise Exception('rawTransaction(): Unable to found a valid way to sign() transaction')  
 
-
     if 'from' in kwargs and kwargs['from'].lower() != account.addr.lower():
-      '''
-        Se envio el argumento from y no concuerda con la 
-        direccion de la cuenta
-      '''
-      raise ValueError('rawTransaction(): "Account.addr" and "from" argument are distinct')
+      raise ValueError('rawTransaction(): "Account.addr" and "from" argument are different')
 
     arguments = [i['type'] for i in self.inputs]
     data = AbiEncoder.encode(arguments, args)
@@ -205,12 +218,12 @@ class ContractFunction(object):
     if 'nonce' in kwargs:
       tx.nonce = kwargs['nonce']
     else:
-      if jsonrpc_valid:
-        tx.nonce = self.contract.jsonrpc_provider.eth_getTransactionCount(self.contract.account.addr,'latest')['result']
+      response = self.contract.jsonrpc_provider.eth_getTransactionCount(self.contract.account.addr,'latest')
+      if 'result' in response:
+        tx.nonce = response['result']
       else:
-        #raise
-        pass
-
+        raise JsonRpcError(str(response))
+  
     if self.payable == True and self.stateMutability == 'payable' and 'value' in kwargs:
       tx.value = kwargs['value']
     else:
@@ -229,45 +242,53 @@ class ContractFunction(object):
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     tx.chainId = 42
 
-
     if 'gasLimit' in kwargs:
       tx.gasLimit = kwargs['gasLimit']
     else:
-      if jsonrpc_valid:
-        tx.gasLimit = self.contract.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False, hexstring=True))['result']
+      response = self.contract.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False, hexstring=True))
+      if 'result' in response:
+        tx.gasLimit = response['result']
       else:
-        # raise
-        pass
+        raise JsonRpcError(str(response))
 
     return tx.sign(account)
 
+
   def commit(self, *args, **kwargs):
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
-    if jsonrpc_valid:
-      rawTransaction = self.rawTransaction(*args,**kwargs)
-      return self.contract.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)['result']
+    if not jsonrpc_valid:
+      raise ContractJsonRpcError('commit(): Unable to found a valid jsonrpc_provider')
+    
+    rawTransaction = self.rawTransaction(*args,**kwargs)
+    response = self.contract.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)
+
+    if 'result' in response:
+      return response['result']
     else:
-      # raise
-      pass
+      raise JsonRpcError(str(response))
+
 
   def call(self, *arg, **kwargs):
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
-    if jsonrpc_valid:
+    if not jsonrpc_valid:
+      raise ContractJsonRpcError('call(): Unable to found a valid jsonrpc_provider')
 
-      arguments = [i['type'] for i in self.inputs]
-      if len(arguments) != 0:
-        data = self.signature + AbiEncoder.encode(arguments, args)
-      else:
-        data = self.signature
-
-      result = self.contract.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},'latest')['result']
-
-      outputs = [o['type'] for o in self.outputs ]
-      return AbiEncoder.decode(outputs,result[2:])
-
+    arguments = [i['type'] for i in self.inputs]
+    if len(arguments) != 0:
+      data = self.signature + AbiEncoder.encode(arguments, args)
     else:
-      # raise
-      pass
+      data = self.signature
+
+    response = self.contract.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},'latest')
+
+    if 'result' in response:
+      result = response['result']
+    else:
+      raise JsonRpcError(str(response))
+
+    outputs = [ouput['type'] for ouput in self.outputs ]
+    return AbiEncoder.decode(outputs,result[2:])
+
 
   def __call__(self,*args, **kwargs):
     if self.constant == False:
@@ -295,7 +316,6 @@ class Contract(object):
 
       if attibute['type'] == 'event':
         setattr(self.events,attibute['name'],Event(attibute,self))
-
 
   @property
   def jsonrpc_provider(self):

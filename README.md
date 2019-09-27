@@ -8,8 +8,8 @@ ToDO
 
 ## Contents
 
-- [Transaction](URL "https://github.com/emilianobilli/ethlite#transaction")
-- [Account](URL "https://github.com/emilianobilli/ethlite/blob/master/README.md#account")
+- [Transaction](#transaction "https://github.com/emilianobilli/ethlite#transaction")
+- [Account](#account "https://github.com/emilianobilli/ethlite/blob/master/README.md#account")
 - [JsonRpc]
 - [Contract]
 
@@ -72,7 +72,7 @@ Return a RLP encoded of the signed transction
 '0xf86b098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a7640000801ba03b5da84dcc0783a0aa7a6fb580cb47004c7621b9945befb8e397ad5e97458ea99fee048566d0ce3144fe16da44ca8fbeef6f64001c2b3b3056daff9288fd3f05'
 ```
 
-*If **chainId** is setted in the transaction the signature agrees with eip155* (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
+*If **chainId** is setted in the transaction the signature is agrees with eip155* (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
 
 ```
 >> tx.chainId = 1
