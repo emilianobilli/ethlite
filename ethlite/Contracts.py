@@ -1,4 +1,5 @@
 from Abi import AbiEncoder
+from Abi import dec_uint
 from Transaction import Transaction
 from Account import Account
 from JsonRpc import JsonRpc
@@ -97,7 +98,7 @@ class Event(EventSet):
     ret = []
     for log in logs:
       if self.event_hash == self.get_event_hash_from_log(log):
-        event = EventLogDict(self.name, log['blockHash'],log['transactionHash'],log['blockNumber'])
+        event = EventLogDict(self.name, log['blockHash'],log['transactionHash'],dec_uint(log['blockNumber']))
 
         topics = log['topics'][1:]  # First topic in list is the event hash/signature -> Keccak(Event(uint,uint))
         data = log['data'][2:]      # First 2 bytes are '0x'
