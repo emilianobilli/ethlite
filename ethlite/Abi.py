@@ -372,6 +372,9 @@ class AbiEncoder:
     if len(indexed) != len(*values):
       pass # raise
 
+    print(indexed)
+    print(values)
+    print(*values)
     v = []
     i = 0
     for arg in indexed:
