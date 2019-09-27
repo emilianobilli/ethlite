@@ -369,7 +369,7 @@ class AbiEncoder:
 
   @classmethod
   def decode_event_topic(cls, indexed, values):
-    if len(arguments) != len(*values):
+    if len(indexed) != len(*values):
       pass # raise
 
     v = []
