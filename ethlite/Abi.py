@@ -374,7 +374,7 @@ class AbiEncoder:
 
     v = []
     i = 0
-    for arg in arguments:
+    for arg in indexed:
       v.append(decode_event_topic(arg,values[i]))
       i = i + 1
     
