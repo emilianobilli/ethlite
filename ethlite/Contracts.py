@@ -8,7 +8,7 @@ from JsonRpc import JsonRpc
 
 class EventLogDict:
   def __init__(self,event,blockHash,transactionHash,blockNumber):
-    self.event = event
+    self.event_name = event
     self.blockHash = blockHash
     self.transactionHash = transactionHash
     self.blockNumber = blockNumber
@@ -333,7 +333,7 @@ if __name__ == '__main__':
   print(contract.events.all(fromBlock='0x0'))
 
   for event in contract.events.all(fromBlock='0x0'):
-    print(event.name)
+    print(event.event_name)
     print(event.changer)
 
   #e = EventLogDict('Croto',1,2,3)
