@@ -331,6 +331,11 @@ if __name__ == '__main__':
   print(o)
   print(dir(contract.events))
   print(contract.events.all(fromBlock='0x0'))
-  e = EventLogDict('Croto',1,2,3)
-  print(e['blockHash'])
-  print(dict(e))
+
+  for event in contract.events.all(fromBlock='0x0'):
+    print(event.name)
+    print(event.changer)
+
+  #e = EventLogDict('Croto',1,2,3)
+  #print(e['blockHash'])
+  #print(dict(e))
