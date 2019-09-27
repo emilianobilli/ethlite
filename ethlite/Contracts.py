@@ -101,10 +101,10 @@ class Event(EventSet):
         event = EventLogDict(self.name, log['blockHash'],log['transactionHash'],log['blockNumber'])
 
         attributes = AbiEncoder.decode_event_topic(self.indexed,log['topics'][1:])
-        attributes = attributes + AbiEncoder.decode(self.inputs,log['data'])
+        attributes = attributes + AbiEncoder.decode(self.inputs,log['data'][2:])
 
         print(log['data'])
-        
+
         i = 0
         for attr in attributes:
           setattr(event,self.abi['inputs'][i]['name'],attr)
