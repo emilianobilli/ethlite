@@ -51,7 +51,6 @@ def dec_bool(word):
   return False
 
 def enc_address(address):
-  print(address)
   if type(address).__name__ == 'str' and address.startswith('0x') and len(address) == 42:
     return pad_left(address)
   raise TypeError('enc_address(): Expect hexstring (start with 0x ) and len == 40')
@@ -265,7 +264,7 @@ def decode_event_topic(var, value):
   if var_type['type'] == 'int' or var_type['type'] == 'uint' or var_type['type'] == 'bool' or var_type['type'] == 'address':
     if 'array' in var_type:
       pass # raise invalid indexed type
-    ret, _ = decode(var,value,0)
+    ret, _ = decode(var,value[2:],0)
     return ret
 
   elif var_type['type'] == 'string':
