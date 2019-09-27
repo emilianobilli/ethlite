@@ -50,7 +50,6 @@ class EventSet:
   def get_event_hash_from_log(self, log):
     return log['topics'][0]
 
-
   def parse_log_data(self, logs):
     ret = []
     for log in logs:
@@ -100,10 +99,11 @@ class Event(EventSet):
       if self.event_hash == self.get_event_hash_from_log(log):
         event = EventLogDict(self.name, log['blockHash'],log['transactionHash'],log['blockNumber'])
 
-        attributes = AbiEncoder.decode_event_topic(self.indexed,log['topics'][1:])
-        attributes = attributes + AbiEncoder.decode(self.inputs,log['data'][2:])
+        topics = log['topics'][1:]  # First topic in list is the event hash/signature -> Keccak(Event(uint,uint))
+        data = log['data'][2:]      # First 2 bytes are '0x'
 
-        print(log['data'])
+        attributes = AbiEncoder.decode_event_topic(self.indexed,topics)
+        attributes = attributes + AbiEncoder.decode(self.inputs,data)
 
         i = 0
         for attr in attributes:
