@@ -236,25 +236,49 @@ def decode(var, data, offset):
 
 def encode_event_topic(var, value):
   var_type = get_type(var)
-  print(var)
-  print(value)
+
   if var_type['type'] == 'int' or var_type['type'] == 'uint' or var_type['type'] == 'bool' or var_type['type'] == 'address':
     if 'array' in var_type:
       pass # raise invalid indexed type    
     return encode(var,value)
+
   elif var_type['type'] == 'string':
     return '0x' + keccak_256(bytearray.fromhex(string_to_hex(var))).hexdigest()
+
   elif var_type['type'] == 'bytes':
     if 'size' in var_type:
       if 'array' in var_type:
         pass # raise invalid indexed type
       else:
         return encode(var, value)
+
     else:
       to_hash = var if var.startswith('0x') else string_to_hex(var)
       return '0x' + keccak_256(bytearray.fromhex(string_to_hex(var))).hexdigest()
 
   return None
+
+
+def decode_event_topic(var, value):
+  var_type = get_type(var)
+  
+  if var_type['type'] == 'int' or var_type['type'] == 'uint' or var_type['type'] == 'bool' or var_type['type'] == 'address':
+    if 'array' in var_type:
+      pass # raise invalid indexed type    
+    return decode(var,value)
+
+  elif var_type['type'] == 'string':
+    return value
+
+  elif var_type['type'] == 'bytes':
+    if 'size' in var_type:
+      if 'array' in var_type:
+        pass # raise invalid indexed type
+      else:
+        return decode(var, value)
+
+    else:
+      return value
 
 
 def encode(var, value):
@@ -333,7 +357,7 @@ class AbiEncoder:
   def encode_event_topic(cls, arguments, *values):
 
     if len(arguments) != len(*values):
-      pass 
+      pass # raise
 
     topics = []
     i = 0
@@ -342,6 +366,20 @@ class AbiEncoder:
       i = i + 1
 
     return topics
+
+  @classmethod
+  def decode_event_topic(cls, indexed, values):
+    if len(arguments) != len(*values):
+      pass # raise
+
+    v = []
+    i = 0
+    for arg in arguments:
+      v.append(decode_event_topic(arg,values[i]))
+      i = i + 1
+    
+    return v
+
 
   @classmethod
   def encode(cls,arguments,values):

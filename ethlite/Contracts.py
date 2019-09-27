@@ -16,10 +16,8 @@ class EventLogDict:
     return 'EventLogDict(%s)' % str(dict(self))
 
   def __iter__(self):
-    yield 'event', self.event
-    yield 'blockHash', self.blockHash
-    yield 'transactionHash', self.transactionHash
-    yield 'blockNumber', self.blockNumber
+    for k in self.__dict__.keys():
+      yield k, self.__dict__[k]
 
   def __getitem__(self,key):
     return getattr(self,key)
@@ -101,6 +99,15 @@ class Event(EventSet):
     for log in logs:
       if self.event_hash == self.get_event_hash_from_log(log):
         event = EventLogDict(self.name, log['blockHash'],log['transactionHash'],log['blockNumber'])
+
+        attributes = AbiEncoder.decode_event_topic(self.indexed,log['topics'][1:])          
+        attributes = attributes + AbiEncoder.decode(self.inputs,log['data'])
+
+        i = 0
+        for attr in attributes:
+          setattr(event,self.abi['inputs'][i]['name'],attr)
+          i = i + 1
+
         ret.append(event)
     return ret
 

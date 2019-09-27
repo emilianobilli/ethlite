@@ -6,12 +6,13 @@ from re import IGNORECASE
 import requests
 
 valid_url_re = compile(
-                    r'^(?:http|ftp)s?://' # http:// or https://
-                    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-                    r'localhost|' #localhost...
-                    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-                    r'(?::\d+)?' # optional port
-                    r'(?:/?|[/?]\S+)$', IGNORECASE)
+  r'^(?:http)s?://' # http:// or https://
+  r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+  r'localhost|' #localhost...
+  r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+  r'(?::\d+)?' # optional port
+  r'(?:/?|[/?]\S+)$', IGNORECASE
+)
 
 class JsonRpc:
 
@@ -23,6 +24,7 @@ class JsonRpc:
       self.node = node
     else:
       raise ValueError('JsonRpc(): %s is not a valid url' % node)
+
   @classmethod
   def get_body_dict(cls):
     return {
