@@ -5,6 +5,9 @@ from re import IGNORECASE
 
 import requests
 
+class JsonRpcError(Exception):
+  pass
+
 valid_url_re = compile(
   r'^(?:http)s?://' # http:// or https://
   r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
