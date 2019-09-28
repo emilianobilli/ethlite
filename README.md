@@ -43,7 +43,7 @@ Return a dict instance of the transaction.
 
 **Params:**
 - **signature**: if True -> return the attributes/fields v, r, s
-- **hexstring**: if True -> return a integer values of the transaction enconding in hexstring (starting with 0x)
+- **hexstring**: if True -> return the integer values of the transaction enconding in hexstring (starting with 0x)
 
 ```
 >> tx.to_dict(signature=False,hexstring=True)
@@ -64,7 +64,7 @@ Return a RLP encoded of the signed transction
 
 **Params:**
 
-- **private_key**: a private key
+- **private_key**: a private key, can be in one these formats: Account instance, integer in (base 10 or in base 16) or hexstring (starting with 0x) 
 
 ```
 >> rlp_encoded = tx.sign('0x4646464646464646464646464646464646464646464646464646464646464646')
