@@ -10,6 +10,10 @@ from sha3 import keccak_256
 
 ARRAY_DYNAMIC_SIZE = -1
 
+
+'''
+  Functions to sanitize and pad left/right 
+'''
 def pad_left(word, char='0'):
   word = align(word)
   tofill = 64 - len(word) + 1
@@ -35,6 +39,10 @@ def align(word):
     return '0' + word
   return word
 
+'''
+  Encode and decode boolean type
+
+'''
 def enc_bool(b):
   if type(b).__name__ == 'bool':
     if b:
@@ -43,13 +51,15 @@ def enc_bool(b):
   else:
     raise TypeError('enc_bool(): Expect a boolean and %s receive' % (type(b).__name__) )
 
-
 def dec_bool(word):
   b = int(word,16)
   if b == 1:
     return True
   return False
 
+'''
+  Encode and decode address type
+'''
 def enc_address(address):
   if type(address).__name__ == 'str' and address.startswith('0x') and len(address) == 42:
     return pad_left(address)
@@ -58,15 +68,20 @@ def enc_address(address):
 def dec_address(word):
   return '0x' + word[24:]
 
+'''
+  Encode and decode unsigned integer type
+'''
 def enc_uint(uint):
   if (type(uint).__name__ == 'int' or type(uint).__name__ == 'long') and uint >= 0:
     return pad_left(hex(uint))
   raise TypeError('enc_uint(): Expect positive int or long')
 
-
 def dec_uint(word):
   return int(word,16)
 
+'''
+  Encode and decode signed integer type
+'''
 def enc_int(value,bits=256):
   if (type(value).__name__ == 'int' or type(value).__name__ == 'long'):
     if value < 0:
@@ -79,6 +94,10 @@ def dec_int(word,bits=256):
   return num - 2 ** bits if num > ((2**bits)/2) - 1 else num
 
 
+'''
+  Encode and decode k elements of any valid type using de parameter 
+  encfunc/decfunc to encode and decode the specific type
+'''
 def enc_Tk(value, k, encfunc=None):
   if k != len(value):
     raise ValueError('enc_Tk(): k value != len(uintLst)')
@@ -100,7 +119,6 @@ def dec_Tk(words, offset, k, decfunc=None):
 def enc_T(value, encfunc=None):
   return enc_uint(len(value)) + enc_Tk(value,len(value),encfunc)
 
-
 def bytes_to_word_address(b):
   assert b % 32 == 0, 'Invalid word align (%d)' % b 
   return b // 32
@@ -114,7 +132,6 @@ def string_to_hex(string):
     for ch in string:
       ret = ret + sanitize_hex(hex(ord(ch)))
     return ret
-
 
 def enc_bytes(b, fixed=False):
   '''
@@ -165,7 +182,6 @@ def dec_list(words,offset,size,decfunc):
   else:
     return (dec_Tk(words,offset,size,decfunc), size)
 
-
 def get_type(s):
   var_type_re = '(int|uint|bool|string|address|bytes)(\d{0,3})'
   var = match(var_type_re, s)
@@ -189,10 +205,8 @@ def get_type(s):
     return ret   
   return None
 
-
 def data_to_words(data):
   return [data[x:x+64] for x in range(0, len(data), 64)]
-
 
 def decode(var, data, offset):
   var_type = get_type(var)
@@ -232,7 +246,6 @@ def decode(var, data, offset):
   elif var_type['type'] == 'string':
     raise NotImplementedError
 
-
 def encode_event_topic(var, value):
   var_type = get_type(var)
 
@@ -257,7 +270,6 @@ def encode_event_topic(var, value):
 
   return None
 
-
 def decode_event_topic(var, value):
   var_type = get_type(var)
   
@@ -280,7 +292,6 @@ def decode_event_topic(var, value):
 
     else:
       return value
-
 
 def encode(var, value):
   var_type = get_type(var)
@@ -333,7 +344,6 @@ def encode(var, value):
     else:
       return enc_bytes(value)
 
-
 def get_number_of_words(args):
   '''
     Return the real number of words (256bits) in the argument
@@ -351,7 +361,6 @@ def is_dynamic(arg):
   arg_type = get_type(arg)
   return arg_type['dynamic']
   
-
 class AbiEncoder:
 
   @classmethod

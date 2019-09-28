@@ -4,6 +4,7 @@ from .Abi import dec_uint
 from .Transaction import Transaction
 from .Account import Account
 from .JsonRpc import JsonRpc
+from .JsonRpc import JsonRpcError
 
 class ContractJsonRpcError(Exception):
   pass
@@ -126,7 +127,7 @@ class Event(EventSet):
           i = i + 1
 
         setattr(event,'all',allattributes)
-        
+
         ret.append(event)
     return ret
 
