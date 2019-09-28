@@ -120,7 +120,7 @@ Perform a keccak_256(message) and them sign it with the private key. Return an i
 ```
 
 #### sign_digest(digest)
-Perform a sign of a digested message
+Perform a signature of a digested message
 
 **Params**
 - digest: The hash to be signed
