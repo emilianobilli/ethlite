@@ -103,7 +103,7 @@ def generate_k(order, secexp, hash_func, data):
         v = hmac.new(k, v, hash_func).digest()
 
 
-
+'''
 def generate_deterministic_k(secexp,hash,hash_func):
     v_0 = b'\x01' * 32
     k_0 = b'\x00' * 32
@@ -116,4 +116,4 @@ def generate_deterministic_k(secexp,hash,hash_func):
     kb = hmac.new(k_2, v_2, hash_func).digest()
     k = int(kb.hex(),16)
     return k
-
+'''

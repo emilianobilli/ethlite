@@ -233,9 +233,6 @@ class SigningKey:
         """
         secexp = self.privkey.secret_multiplier
         k = rfc6979.generate_k(self.curve.generator.order(), secexp, hashfunc, digest)
-        print(k)
-        r = rfc6979.generate_deterministic_k(secexp,digest,hashfunc)
-        print(r)
         return self.sign_digest(digest, sigencode=sigencode, k=k)
 
     def sign(self, data, entropy=None, hashfunc=None, sigencode=sigencode_string, k=None):
