@@ -1,5 +1,5 @@
 # ethlite - Ethereum Lite Client Library
-A tiny web3/python alternative to interact with an ethereum compatible blockchain
+A tiny web3/python alternative to interact with any ethereum compatible blockchain
 
 ## Getting started
 ```
