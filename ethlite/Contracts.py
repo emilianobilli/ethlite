@@ -1,3 +1,4 @@
+from warnings import warn
 from .Abi import AbiEncoder
 from .Abi import dec_uint
 from .Transaction import Transaction
@@ -114,11 +115,18 @@ class Event(EventSet):
         attributes = AbiEncoder.decode_event_topic(self.indexed,topics)
         attributes = attributes + AbiEncoder.decode(self.inputs,data)
 
+        allattributes = []
         i = 0
         for attr in attributes:
-          setattr(event,self.abi['inputs'][i]['name'],attr)
+          if 'name' in self.abi['inputs'][i] and self.abi['inputs'][i]['name'] != '':
+            setattr(event,self.abi['inputs'][i]['name'],attr)
+          else:
+            setattr(event,'param_%d' % i, attr)
+          allattributes.append(attr)
           i = i + 1
 
+        setattr(event,'all',allattributes)
+        
         ret.append(event)
     return ret
 
@@ -237,10 +245,11 @@ class ContractFunction(object):
     else:
       tx.gasPrice = self.contract.default_gasPrice
     
-    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # Only for Kovan -> Change
-    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    tx.chainId = 42
+    if self.contract.chainId is not None:
+      tx.chainId = self.contract.chainId
+    else:
+      if 'chainId' in kwargs:
+        tx.chainId = kwargs['chainId']
 
     if 'gasLimit' in kwargs:
       tx.gasLimit = kwargs['gasLimit']
@@ -324,7 +333,21 @@ class Contract(object):
   @jsonrpc_provider.setter
   def jsonrpc_provider(self, jsonrpc_provider):
     self.__jsonrpc_provider = JsonRpc(jsonrpc_provider)
-  
+    '''
+      After to initialize the jsonrpc_provider
+      the contract neet to query the chainid
+    '''
+    try:
+      response = self.__jsonrpc_provider.eth_chainId()
+      if 'result' in response:
+        self.chainId = response['result']
+      else:
+        warn('jsonrcp_provider: No support eth_chainId() method')
+        self.chainId = None
+    except Exception as e:
+      warn('jsonrpc_provider: throw ->' + str(e))
+      self.chainId = None
+    
   @property
   def account(self):
     return self.__account

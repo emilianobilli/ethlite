@@ -14,6 +14,8 @@ for event in contract.events.all(fromBlock='0x0'):
     print(event.event_name)
     print(event.changer)
 
+print(contract.chainId)
+
 #e = EventLogDict('Croto',1,2,3)
 #print(e['blockHash'])
 #print(dict(e))
