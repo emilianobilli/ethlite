@@ -127,9 +127,6 @@ class Transaction(object):
     else:
       raise TypeError('Expect 0x<str> or bytearray')
 
-  ##
-  # Nonce
-  #
   @property
   def nonce(self):
     return self.__nonce
@@ -138,9 +135,6 @@ class Transaction(object):
   def nonce(self,nonce):
     self.__nonce = self.integer_type(nonce)
 
-  ##
-  # GasPrice
-  #
   @property
   def gasPrice(self):
     return self.__gasPrice
@@ -149,9 +143,6 @@ class Transaction(object):
   def gasPrice(self, gasPrice):
     self.__gasPrice = self.integer_type(gasPrice)
 
-  ##
-  # GasLimit
-  #
   @property
   def gasLimit(self):
     return self.__gasLimit
@@ -160,9 +151,6 @@ class Transaction(object):
   def gasLimit(self, gasLimit):
     self.__gasLimit = self.integer_type(gasLimit)
 
-  ##
-  # To
-  #
   @property
   def to(self):
     return self.__to
@@ -177,9 +165,6 @@ class Transaction(object):
       else:
         raise ValueError('Invalid value')
 
-  ##
-  # value
-  #
   @property
   def value(self):
     return self.__value
@@ -188,9 +173,6 @@ class Transaction(object):
   def value(self,value):
     self.__value = self.integer_type(value)
 
-  ##
-  # data
-  #
   @property
   def data(self):
     return self.__data
@@ -199,9 +181,6 @@ class Transaction(object):
   def data(self,data):
     self.__data = self.byte_type(data)
 
-  ##
-  # chainId
-  #
   @property
   def chainId(self):
     return self.__chainId

@@ -98,6 +98,16 @@ class JsonRpc:
     data['params'].append(tag)
     return self.doPost(dumps(data))
 
+  def eth_getTransactionReceipt(self,txHash):
+    '''
+      Returns the receipt of a transaction by transaction hash.
+    '''
+    data = self.get_body_dict()
+    data['method'] = 'eth_getTransactionReceipt'
+    data['params'].append(txHash)
+    return self.doPost(dumps(data))
+
+
   def eth_sendRawTransaction(self,rawTransaction):
     '''
       Creates new message call transaction or a contract creation for signed transactions.

@@ -41,7 +41,7 @@ class Wallet:
   @property
   def balance(self):
     if self.account is None:
-      raise AttributeError('Imposible to get balance, please first import an account')
+      raise AttributeError('Impossible to get balance, please first import an account')
     
     response = self.jsonrpc_privider.eth_getBalance(self.account.addr,'latest')
     if 'result' in response:
@@ -51,11 +51,11 @@ class Wallet:
     
   @balance.setter
   def balance(self,balance):
-    raise AttributeError('Imposible to set balance, please buy or ask someone to send you a little')
+    raise AttributeError('Impossible to set balance, please buy or ask someone to send you a little')
   
   def send(self, **kwargs):
     if self.account is None:
-      raise AttributeError('Imposible to send founds, please first import an account')
+      raise AttributeError('Impossible to send founds, please first import an account')
 
     tx = Transaction()
 

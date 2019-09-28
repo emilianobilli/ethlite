@@ -6,10 +6,6 @@ from .Account import Account
 from .JsonRpc import JsonRpc
 from .JsonRpc import JsonRpcError
 
-class ContractJsonRpcError(Exception):
-  pass
-
-
 class EventLogDict:
   '''
     Represents the parsed return of the logs. Each time a contract 
@@ -50,7 +46,7 @@ class EventSet:
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
 
     if not jsonrpc_valid:
-      raise ContractJsonRpcError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
+      raise AttributeError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
     
     response = self.contract.jsonrpc_provider.eth_getLogs(filter_query)
     if 'result' in response:
@@ -110,7 +106,7 @@ class Event(EventSet):
       if self.event_hash == self.get_event_hash_from_log(log):
         event = EventLogDict(self.name, log['blockHash'],log['transactionHash'],dec_uint(log['blockNumber']))
 
-        topics = log['topics'][1:]  # First topic in list is the event hash/signature -> Keccak(Event(uint,uint))
+        topics = log['topics'][1:]  # First topic in list is the event hash/signature -> Keccak(EventName(type,...,type))
         data = log['data'][2:]      # First 2 bytes are '0x'
 
         attributes = AbiEncoder.decode_event_topic(self.indexed,topics)
@@ -191,7 +187,7 @@ class ContractFunction(object):
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
 
     if not jsonrpc_valid:
-      raise ContractJsonRpcError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
+      raise AttributeError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
 
     if 'value' in kwargs and self.payable == False:
       raise ValueError('rawTransaction(): value received to a non-payable function')
@@ -267,7 +263,7 @@ class ContractFunction(object):
   def commit(self, *args, **kwargs):
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
     if not jsonrpc_valid:
-      raise ContractJsonRpcError('commit(): Unable to found a valid jsonrpc_provider')
+      raise AttributeError('commit(): Unable to found a valid jsonrpc_provider')
     
     rawTransaction = self.rawTransaction(*args,**kwargs)
     response = self.contract.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)
@@ -281,7 +277,7 @@ class ContractFunction(object):
   def call(self, *arg, **kwargs):
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
     if not jsonrpc_valid:
-      raise ContractJsonRpcError('call(): Unable to found a valid jsonrpc_provider')
+      raise AttributeError('call(): Unable to found a valid jsonrpc_provider')
 
     arguments = [i['type'] for i in self.inputs]
     if len(arguments) != 0:
