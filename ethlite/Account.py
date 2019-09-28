@@ -1,6 +1,6 @@
 from sha3     import keccak_256
-from ecdsa    import SigningKey
-from ecdsa    import SECP256k1
+from .ecdsa    import SigningKey
+from .ecdsa    import SECP256k1
 
 secp256k1n = 115792089237316195423570985008687907852837564279074904382605163141518161494337
 
