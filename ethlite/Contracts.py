@@ -211,7 +211,7 @@ class ContractFunction(object):
       if self.contract.account is not None and isinstance(self.contract.account,Account):
         account = self.contract.account
       else:
-        raise Exception('rawTransaction(): Unable to found a valid way to sign() transaction')  
+        raise AttributeError('rawTransaction(): Unable to found a valid way to sign() transaction, you MUST import an account')  
 
     if 'from' in kwargs and kwargs['from'].lower() != account.addr.lower():
       raise ValueError('rawTransaction(): "Account.addr" and "from" argument are different')
@@ -311,11 +311,12 @@ class FunctionSet:
   pass
 
 class Contract(object):
-  def __init__(self,address,abi):
+  def __init__(self,address,abi,**kwargs):
     self.address = address
     self.abi = abi
     self.events = EventSet(self)
     self.functions = FunctionSet()
+    self.__account = None
 
     for attibute in self.abi:
       if attibute['type'] == 'function':
@@ -323,6 +324,9 @@ class Contract(object):
 
       if attibute['type'] == 'event':
         setattr(self.events,attibute['name'],Event(attibute,self))
+
+    if 'jsonrpc_provider' in kwargs:
+      self.jsonrpc_provider = kwargs['jsonrpc_provider']
 
   @property
   def jsonrpc_provider(self):
@@ -360,5 +364,8 @@ class Contract(object):
       self.__account = Account.fromhex(account)
     else:
       raise TypeError('account: expect a int, hexstring or Account instance')
+
+  def import_account(self,account):
+    self.account = account
 
 
