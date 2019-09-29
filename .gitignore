@@ -6,3 +6,6 @@
 *.exe
 *.bin
 *.abi
+test_contract.py
+test_wallet.py
+test_contract.py
