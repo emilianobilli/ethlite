@@ -2,6 +2,7 @@ from warnings import warn
 from .Abi import AbiEncoder
 from .Abi import dec_uint
 from .Transaction import Transaction
+from .CommitedTransaction import CommitedTransaction
 from .Account import Account
 from .JsonRpc import JsonRpc
 from .JsonRpc import JsonRpcError
@@ -269,7 +270,7 @@ class ContractFunction(object):
     response = self.contract.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)
 
     if 'result' in response:
-      return response['result']
+      return CommitedTransaction(response['result'],self.contract.jsonrpc_provider)
     else:
       raise JsonRpcError(str(response))
 
@@ -339,7 +340,7 @@ class Contract(object):
       if 'result' in response:
         self.chainId = response['result']
       else:
-        warn('jsonrcp_provider: No support eth_chainId() method')
+        warn('jsonrpc_provider: No support eth_chainId() method')
         self.chainId = None
     except Exception as e:
       warn('jsonrpc_provider: throw ->' + str(e))

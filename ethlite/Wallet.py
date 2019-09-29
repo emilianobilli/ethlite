@@ -4,11 +4,12 @@ from .Account import Account
 from .JsonRpc import JsonRpc
 from .JsonRpc import JsonRpcError
 from .Transaction import Transaction
+from .CommitedTransaction import CommitedTransaction
 
 class Wallet:
   def __init__(self, http_provider):
     self.account = None
-    self.jsonrpc_privider = JsonRpc(http_provider)
+    self.jsonrpc_provider = JsonRpc(http_provider)
     self.default_gasPrice = 20 * 10**9
     try:
       response = self.jsonrpc_provider.eth_chainId()
@@ -43,7 +44,7 @@ class Wallet:
     if self.account is None:
       raise AttributeError('Impossible to get balance, please first import an account')
     
-    response = self.jsonrpc_privider.eth_getBalance(self.account.addr,'latest')
+    response = self.jsonrpc_provider.eth_getBalance(self.account.addr,'latest')
     if 'result' in response:
       return dec_uint(response['result'])
     else:
@@ -53,7 +54,7 @@ class Wallet:
   def balance(self,balance):
     raise AttributeError('Impossible to set balance, please buy or ask someone to send you a little')
   
-  def send(self, **kwargs):
+  def send(self,value, **kwargs):
     if self.account is None:
       raise AttributeError('Impossible to send founds, please first import an account')
 
@@ -62,7 +63,7 @@ class Wallet:
     if 'nonce' in kwargs:
       tx.nonce = kwargs['nonce']
     else:
-      response = self.contract.jsonrpc_provider.eth_getTransactionCount(self.contract.account.addr,'latest')
+      response = self.jsonrpc_provider.eth_getTransactionCount(self.account.addr,'latest')
       if 'result' in response:
         tx.nonce = response['result']
       else:
@@ -80,10 +81,7 @@ class Wallet:
     else:
       raise ValueError('send(): Mandatory parameter is missing -> to')
 
-    if 'value' in kwargs:
-      tx.value = kwargs['value']
-    else:
-      raise ValueError('send(): Mandatory parameter is missing -> value')
+    tx.value = value
 
     rawTransaction = tx.sign(self.account)
 
@@ -92,6 +90,6 @@ class Wallet:
     if 'result' not in response:
       raise JsonRpcError(str(response))
     
-    return response['result']
+    return CommitedTransaction(response['result'],self.jsonrpc_provider)
 
       
