@@ -10,8 +10,8 @@ ToDO
 
 - [Transaction](#transaction "https://github.com/emilianobilli/ethlite#transaction")
 - [Account](#account "https://github.com/emilianobilli/ethlite/blob/master/README.md#account")
-- [JsonRpc]
-- [Contract]
+- [Contracts]
+- [Wallet]
 
 
 
