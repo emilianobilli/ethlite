@@ -149,5 +149,3 @@ class JsonRpc:
     data['params'].append(obj)
     return self.doPost(dumps(data))
 
-if __name__ == '__main__':
-  print(JsonRpc('https://kovan.infura.io').eth_chainId())
