@@ -2,9 +2,18 @@
 A tiny web3/python alternative to interact with any ethereum compatible blockchain
 
 ## Getting started
+
+### Requiremetns
+
+- pysha3
+- six
+
+### Install
+
 ```
-ToDO
+  $ pip install ethlite
 ```
+
 
 ## Contents
 
@@ -41,15 +50,26 @@ If the contract instance is created (not exception is thrown), each functions an
 - In contract.events are defined all the events as Event() 
 - In contract.functions are defined all the functions as ContractFunction()
 
-For example:
+### Call "View" functions
 
--To call a function getValues() with state mutability is false (a view function)
+The view functions are those that do not change the status in the smart contract. For example to call the function **getValues()**
 
 ```
 >> ret = contract.functions.getValues()
 or
 >> ret = contract.functions.getValues.call()
 ```
+
+The return value **ret** is a [] with the values in same order that are returned in the smart contract
+
+If the "view" function expect parameters, is possible do it in two ways.
+
+- contract.functions.functionName(arg_1,arg_2,arg_3,...,arg_N)
+
+- contract.functions.functionName.call(arg_1,arg_2,arg_3,...,arg_N)
+
+
+### Call function that modify the state in the smart contract
 
 
 ## Transaction 
