@@ -62,14 +62,48 @@ or
 
 The return value **ret** is a [] with the values in same order that are returned in the smart contract
 
-If the "view" function expect parameters, is possible do it in two ways.
+If the "view" function expect arguments, is possible do it in two ways.
 
-- contract.functions.functionName(arg_1,arg_2,arg_3,...,arg_N)
+```
+>> contract.functions.functionName(arg_1,arg_2,arg_3,...,arg_N)
+or 
+>> contract.functions.functionName.call(arg_1,arg_2,arg_3,...,arg_N)
+```
 
-- contract.functions.functionName.call(arg_1,arg_2,arg_3,...,arg_N)
+### Call function that modify the state of the smart contract
 
+To proceed with call that modify the state of the smart contract, first is necessary to attach a Account
 
-### Call function that modify the state in the smart contract
+```
+>> contract.account = 0x4646464646464646464646464646464646464646464646464646464646464646
+or
+>> contract.account = '0x4646464646464646464646464646464646464646464646464646464646464646'
+or 
+>> account = Account(0x4646464646464646464646464646464646464646464646464646464646464646)
+>> contract.account = account
+```
+
+When account has been attached to the contract, is possible to proceed with the call.
+
+```
+>> from random import randint
+
+>> u = randint(1,100000000)
+>> i = -randint(1,100000000)
+>> tx = contract.functions.change(u,i,gasPrice=21000000000)
+or
+>> tx = contract.functions.change.commit(u,i,gasPrice=2000000000)
+
+```
+The arguments are passed in the same way as a **view** function, but this call expect some extra arguments in the **kwargs**.
+
+The list of the valid **kwargs** are:
+- **gasPrice**: If this parameter is missing, the contract do tha call with **self.default_gasPrice**
+- **gasLimit**: If this parameter is missing, it is estimated automatically before the call
+- **value**: If the funcions is payable
+- **chainId**
+- **nonce**: If this parameter is missing, it is estimated automatically before de call
+
 
 
 ## Transaction 
