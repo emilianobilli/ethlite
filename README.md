@@ -17,9 +17,9 @@ A tiny web3/python alternative to interact with any ethereum compatible blockcha
 
 ## Contents
 
+- [Contracts](#contracts "https://github.com/emilianobilli/ethlite/blob/master/README.md#contracts")
 - [Transaction](#transaction "https://github.com/emilianobilli/ethlite#transaction")
 - [Account](#account "https://github.com/emilianobilli/ethlite/blob/master/README.md#account")
-- [Contracts]
 - [Wallet]
 
 
