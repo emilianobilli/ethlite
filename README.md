@@ -32,11 +32,24 @@ To create a new contract instance it is necessary to know the **address** and th
 >> contract = Contract(address,abi)
 >> contract.jsonrpc_provider = 'https://kovan.infura.io'
 
-# Other way to init with only one call
+# Other way to init it with only one call
 >> contract = Contract(address,abi,jsonrpc_provider='https://kovan.infura.io')
 
 ```
+If the contract instance is created (not exception is thrown), each functions and events of the contract are created as a instance of the class **ContractFunction** and **Event** respectively as attributes of **functions** and **events**.
 
+- In contract.events are defined all the events as Event() 
+- In contract.functions are defined all the functions as ContractFunction()
+
+For example:
+
+-To call a function getValues() with state mutability is false (a view function)
+
+```
+>> ret = contract.functions.getValues()
+or
+>> ret = contract.functions.getValues.call()
+```
 
 
 ## Transaction 
