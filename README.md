@@ -14,6 +14,30 @@ ToDO
 - [Wallet]
 
 
+## Contracts
+
+Class to intereact with smart contracts
+
+### Create a new contract instance
+
+To create a new contract instance it is necessary to know the **address** and the **ABI** contract. After initialization, you must assign the **jsonrpc_provider** attribute with the url of the node with which we will interact
+```
+>> from ethlite.Contracts import Contract
+>> from json import loads
+>> 
+>> address = '0xE8A3AF60260c4d5226ac6fC841A0AFD65BB4B4f1'
+>> abi = loads('[{"constant":false,"inputs":[{"name":"u","type":"uint256"},{"name":"i","type":"int256"}],"name":"change","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getValues","outputs":[{"name":"","type":"uint256"},{"name":"","type":"int256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"uint256"}],"name":"change_uint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"int256"}],"name":"change_int","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"uint256"}],"name":"UintChange","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"int256"}],"name":"IntChange","type":"event"}]')
+
+
+>> contract = Contract(address,abi)
+>> contract.jsonrpc_provider = 'https://kovan.infura.io'
+
+# Other way to init with only one call
+>> contract = Contract(address,abi,jsonrpc_provider='https://kovan.infura.io')
+
+```
+
+
 
 ## Transaction 
 
@@ -132,3 +156,4 @@ Perform a signature of a digested message
 >> addr.sign_digest(to_sign.digest())
 5f3d10a56c633f476ffffe3595353e480611dba01124fd3d5334d0faacf14b5028ee8c85a63ae513a58871cba502f8077f79581460e76dbd272fff9a9aad76bc
 ```
+
