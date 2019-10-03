@@ -95,14 +95,36 @@ or
 >> tx = contract.functions.change.commit(u,i,gasPrice=2000000000)
 
 ```
+
+#### Arguments/Parameters
+
 The arguments are passed in the same way as a **view** function, but this call expect some extra arguments in the **kwargs**.
 
-The list of the valid **kwargs** are:
+The list of valid **kwargs** are:
 - **gasPrice**: If this parameter is missing, the contract do tha call with **self.default_gasPrice**
 - **gasLimit**: If this parameter is missing, it is estimated automatically before the call
 - **value**: If the funcions is payable
 - **chainId**
 - **nonce**: If this parameter is missing, it is estimated automatically before de call
+
+#### Return Value
+
+The return value of this kind of function (that change the status in the smart contract) is an instance of class CommitedTransaction. 
+The way to know the status of the transaction is call the method **receipt()**. This method return **None** until the transaction is confirmed and then return a receipt.
+
+```
+>> tx = contract.functions.change(u,i,gasPrice=21000000000)
+>> '''
+>> Waiting receipt (finish)
+>>  '''
+>> receipt = txComited.receipt()
+>> while receipt == None:
+>>  sleep(1)
+>>  receipt = txComited.receipt()
+>>
+>> print('Receipt', receipt)
+
+```
 
 
 
