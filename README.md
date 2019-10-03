@@ -128,9 +128,43 @@ The way to know the status of the transaction is call the method **receipt()**. 
 
 ```
 
-### Query for event contracts
+### Query to contract's events
+
+When the contract is initialized with the abi, all events are attributes of the contract's attribute **events**. To query a particular event you must specify the name of the event, if it has an indexed parameter or more you must provide as an argument if you want filter for that topic.
 
 
+#### Query for a particular event. e.g IntChange
+
+```
+>> logs = contract.events.IntChange(fromblock=0x0)
+```
+
+#### Query for a particular event. e.g IntChange but filter with the first topic (address indexed addr)
+
+```
+>> logs = contract.events.IntChange('0x7113fFcb9c18a97DA1b9cfc43e6Cb44Ed9165509',fromblock=0x0)
+```
+
+#### Query for all events that's occurred between the block 0 and the block 100000
+
+```
+>> logs = contract.events.all(fromblock=0x0,toBlock=2710)
+```
+
+#### Parse logs in the receipt
+
+```
+>> receipt = tx.receipt()
+>> while receipt == None:
+>>  sleep(1)
+>>  receipt = tx.receipt()
+>>
+>> logs = contract.events.parse_log_data(receipt['logs'])
+```
+
+#### Return value
+
+The return value of any event query or parsed from the receipt is a list of **EventLogDict** objects. 
 
 ## Transaction 
 
