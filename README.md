@@ -109,22 +109,26 @@ The list of valid **kwargs** are:
 
 #### Return Value
 
-The return value of this kind of function (that change the status in the smart contract) is an instance of class CommitedTransaction. 
+The return value of this kind of function (that change the status in the smart contract) is an instance of class CommittedTransaction. 
 The way to know the status of the transaction is call the method **receipt()**. This method return **None** until the transaction is confirmed and then return a receipt.
 
 ```
+>> from time import sleep
+>>
 >> tx = contract.functions.change(u,i,gasPrice=21000000000)
 >> '''
->> Waiting receipt (finish)
->>  '''
->> receipt = txComited.receipt()
+>>   Waiting receipt (finish)
+>> '''
+>> receipt = tx.receipt()
 >> while receipt == None:
 >>  sleep(1)
->>  receipt = txComited.receipt()
+>>  receipt = tx.receipt()
 >>
->> print('Receipt', receipt)
+>> print('Transaction Status:', receipt['status'])
 
 ```
+
+### Query for event contracts
 
 
 
