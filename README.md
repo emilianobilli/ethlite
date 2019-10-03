@@ -148,7 +148,7 @@ When the contract is initialized with the abi, all events are attributes of the 
 #### Query for all events that's occurred between the block 0 and the block 100000
 
 ```
->> logs = contract.events.all(fromblock=0x0,toBlock=2710)
+>> logs = contract.events.all(fromblock=0x0,toBlock=0x2710)
 ```
 
 #### Parse logs in the receipt
