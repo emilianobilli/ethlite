@@ -20,7 +20,7 @@ A tiny web3/python alternative to interact with any ethereum compatible blockcha
 - [Contracts](#contracts "https://github.com/emilianobilli/ethlite/blob/master/README.md#contracts")
 - [Transaction](#transaction "https://github.com/emilianobilli/ethlite#transaction")
 - [Account](#account "https://github.com/emilianobilli/ethlite/blob/master/README.md#account")
-- [Wallet]
+- [Wallet](#wallet "https://github.com/emilianobilli/ethlite/blob/master/README.md#wallet")
 
 ***
 
@@ -298,4 +298,41 @@ Perform a signature of a digested message
 >> addr.sign_digest(to_sign.digest())
 5f3d10a56c633f476ffffe3595353e480611dba01124fd3d5334d0faacf14b5028ee8c85a63ae513a58871cba502f8077f79581460e76dbd272fff9a9aad76bc
 ```
+***
+
+## Wallet
+
+Class to check and manipulate account balance
+
+### Create a Wallet instance
+
+```
+>> from ethlite_ebilli.Wallet import Wallet
+
+>> wallet = Wallet('https://kovan.infura.io/')
+```
+
+To initialize the instance is necessary pass as parameter the http/s provider
+
+### Attach / import Account
+
+The next step is import an account
+
+```
+>> wallet.import_account(0x4646464646464646464646464646464646464646464646464646464646464646)
+```
+
+### Check balance and Send a Value
+
+```
+>> balance = wallet.balance
+>> result = wallet.send(100000,to='0xa74b20233bf2cE1DfE9E66448316e61Bad78133E')
+```
+**The fist parameter is the amount to send in wei**
+
+The valid **kwargs** for send() are:
+
+- **nonce**
+- **gasPrice**: If this value is omitted, use default_gasPrice -> 20 * 10 ** 9
+- **to**
 
