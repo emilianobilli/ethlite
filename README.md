@@ -22,6 +22,7 @@ A tiny web3/python alternative to interact with any ethereum compatible blockcha
 - [Account](#account "https://github.com/emilianobilli/ethlite/blob/master/README.md#account")
 - [Wallet]
 
+***
 
 ## Contracts
 
@@ -165,6 +166,18 @@ When the contract is initialized with the abi, all events are attributes of the 
 #### Return value
 
 The return value of any event query or parsed from the receipt is a list of **EventLogDict** objects. 
+Each one has:
+
+- **event_name**
+- **blockHash**
+- **transactionHash**
+- **blockNumber**
+- **All of the event parameters as a list**
+- **All of the event parameters as a key/value and object attribute**
+
+
+***
+
 
 ## Transaction 
 
@@ -235,6 +248,8 @@ Transaction({'nonce': 9, 'gasPrice': 20000000000, 'gas': 21000, 'to': '0x3535353
 >> print(rlp_encoded)
 '0xf86c098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a76400008026a05f3d10a56c633f476ffffe3595353e480611dba01124fd3d5334d0faacf14b50a028ee8c85a63ae513a58871cba502f8077f79581460e76dbd272fff9a9aad76bc'
 ```
+
+***
 
 ## Account
 
