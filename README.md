@@ -333,6 +333,6 @@ The next step is import an account
 The valid **kwargs** for send() are:
 
 - **nonce**
-- **gasPrice**: If this value is omitted, use default_gasPrice -> 20 * 10 ** 9
+- **gasPrice**: If this value is omitted, the call use default_gasPrice -> 20 * 10 ** 9
 - **to**
 
