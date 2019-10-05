@@ -6,6 +6,7 @@ A tiny web3/python alternative to interact with any ethereum compatible blockcha
 ### Requiremetns
 
 - pysha3
+- requests
 - six
 
 ### Install
