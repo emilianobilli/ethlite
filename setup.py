@@ -20,6 +20,7 @@ setuptools.setup(
     ],
     install_requires=[
           'pysha3',
+          'requests',
           'six'
     ],
     python_requires='>=3.5',

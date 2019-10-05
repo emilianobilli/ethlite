@@ -44,3 +44,6 @@ ethlite_ebilli.egg-info/SOURCES.txt
 ethlite_ebilli.egg-info/top_level.txt
 test_abis.py
 test_contracts.py
+dist/ethlite-0.0.1.tar.gz
+dist/ethlite-0.0.1-py3-none-any.whl
+ethlite.egg-info/requires.txt
