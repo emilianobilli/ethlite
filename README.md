@@ -308,7 +308,7 @@ Class to check and manipulate account balance
 ### Create a Wallet instance
 
 ```
->> from ethlite_ebilli.Wallet import Wallet
+>> from ethlite.Wallet import Wallet
 
 >> wallet = Wallet('https://kovan.infura.io/')
 ```
