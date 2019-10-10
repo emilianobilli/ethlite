@@ -124,14 +124,37 @@ def bytes_to_word_address(b):
   return b // 32
 
 def dec_T(words, offset, decfunc=None):
-  offset += bytes_to_word_address(dec_uint(words[offset]))
+  offset = bytes_to_word_address(dec_uint(words[offset]))
   return dec_Tk(words, offset + 1 , dec_uint(words[offset]), decfunc)
 
+def dec_bytesN(word,size=32):
+  if size < 32 and size % 8 == 0:
+    return '0x' + word[:size*2]
+  pass # raise
+
+def dec_bytes(words, offset):
+  b = '0x'
+  offset = bytes_to_word_address(dec_uint(words[offset]))
+  length = dec_uint(words[offset]) * 2
+  offset = offset + 1
+  w = length // 64
+  m = length % 64
+  while w > 0:
+    b = b + words[offset]
+    w = w - 1
+    offset = offset + 1
+  b = b + words[offset][:m]
+  return b
+
+def dec_string(words, offset):
+  b = dec_bytes(words,offset)
+  return bytes.fromhex(b[2:]).decode('utf-8')
+
 def string_to_hex(string):
-    ret = ''
-    for ch in string:
-      ret = ret + sanitize_hex(hex(ord(ch)))
-    return ret
+  ret = ''
+  for ch in string:
+    ret = ret + sanitize_hex(hex(ord(ch)))
+  return ret
 
 def enc_bytes(b, fixed=False):
   '''
@@ -165,7 +188,7 @@ def enc_bytes_fixed(b):
   return enc_bytes(b,fixed=True)
 
 def enc_string(s):
-  return enc_bytes(string_to_hex(s))
+  return enc_bytes(s)
 
 def enc_list(value,size,encfunc):
   if type(value).__name__ == 'list':
@@ -241,10 +264,18 @@ def decode(var, data, offset):
       return (dec_address(words[offset]),1)
 
   elif var_type['type'] == 'bytes':
-    raise NotImplementedError
+    if 'size' in var_type:
+      if 'array' in var_type:
+        size = var_type['array']
+        (listbyes,n) = dec_list(words,offset,size, dec_bytesN)
+        return ([dec_bytesN(lb,var_type['size']) for lb in listbytes],n)
+      else:
+        return(dec_bytesN(words[offset],var_type['size']),1)
+    else:
+      return(dec_bytes(words,offset),1)
 
   elif var_type['type'] == 'string':
-    raise NotImplementedError
+    return (dec_string(words,offset),1)
 
 def encode_event_topic(var, value):
   var_type = get_type(var)
@@ -364,22 +395,25 @@ def is_dynamic(arg):
 class AbiEncoder:
 
   @classmethod
-  def encode_event_topic(cls, arguments, *values):
+  def encode_event_topic(cls, arguments, values):
 
-    if len(arguments) != len(*values):
+    if len(arguments) != len(values):
       pass # raise
 
     topics = []
     i = 0
     for arg in arguments:
-      topics.append('0x' + encode_event_topic(arg,values[i]))
+      if values[i] is not None:
+        topics.append('0x' + encode_event_topic(arg,values[i]))
+      else:
+        topics.append(None)
       i = i + 1
 
     return topics
 
   @classmethod
   def decode_event_topic(cls, indexed, values):
-    if len(indexed) != len(*values):
+    if len(indexed) != len(values):
       pass # raise
 
     v = []

@@ -49,7 +49,18 @@ class Wallet:
       return dec_uint(response['result'])
     else:
       raise JsonRpcError(str(response))
-    
+  
+  @property
+  def blockNumber(self):
+    if isinstance(self.__jsonrpc_provider,JsonRpc):
+      response = self.jsonrpc_provider.eth_blockNumber()
+      if 'result' in response:
+        return dec_uint(response['result'])
+      else:
+        raise JsonRpcError(str(response))
+    else:
+      return None
+
   @balance.setter
   def balance(self,balance):
     raise AttributeError('Impossible to set balance, please buy or ask someone to send you a little')

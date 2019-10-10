@@ -42,7 +42,10 @@ class EventSet:
   def commit_filter_query(self,filter_query,**kwargs):
     for kw in kwargs:
       if kw in self.valid_kwargs:
-        filter_query[kw] = kwargs[kw]
+        if (kw == 'fromBlock' or kw == 'toBlock') and isinstance(kwargs[kw],int):
+          filter_query[kw] = hex(kwargs[kw])
+        else:
+          filter_query[kw] = kwargs[kw]
     
     jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
 
@@ -130,8 +133,8 @@ class Event(EventSet):
 
   def topic(self, *indexed):
     if indexed is not ():
-      n = len(*indexed)
-      topics = AbiEncoder.encode_event_topic(self.indexed[:n],*indexed)
+      n = len(indexed)
+      topics = AbiEncoder.encode_event_topic(self.indexed[:n],indexed)
     else:
       topics = []
     topics = [self.event_hash] + topics
@@ -328,10 +331,22 @@ class Contract(object):
     if 'jsonrpc_provider' in kwargs:
       self.jsonrpc_provider = kwargs['jsonrpc_provider']
 
+  
+  @property
+  def blockNumber(self):
+    if isinstance(self.__jsonrpc_provider,JsonRpc):
+      response = self.jsonrpc_provider.eth_blockNumber()
+      if 'result' in response:
+        return dec_uint(response['result'])
+      else:
+        raise JsonRpcError(str(response))
+    else:
+      return None
+
   @property
   def jsonrpc_provider(self):
     return self.__jsonrpc_provider
-  
+
   @jsonrpc_provider.setter
   def jsonrpc_provider(self, jsonrpc_provider):
     self.__jsonrpc_provider = JsonRpc(jsonrpc_provider)
@@ -344,7 +359,7 @@ class Contract(object):
       if 'result' in response:
         self.chainId = response['result']
       else:
-        warn('jsonrpc_provider: No support eth_chainId() method')
+        warn('jsonrpc_provider: No support eth_chainId() method -> ' + str(response))
         self.chainId = None
     except Exception as e:
       warn('jsonrpc_provider: throw ->' + str(e))
