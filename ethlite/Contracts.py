@@ -53,6 +53,7 @@ class EventSet:
       raise AttributeError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
     
     response = self.contract.jsonrpc_provider.eth_getLogs(filter_query)
+
     if 'result' in response:
       return self.parse_log_data(response['result'])
     else:
@@ -73,11 +74,15 @@ class EventSet:
 
     return ret
 
-  def all(self,**kwargs):  
-    filter_query = { 
-      'address': self.contract.address,
-    }
-    return self.commit_filter_query(filter_query,**kwargs)
+  def all(self,**kwargs):
+    if hasattr(self.contract,'address') or 'address' in kwargs:
+      filter_query = { 
+        'address': self.contract.address if hasattr(self.contract,'address') else kwargs['address'],
+      }
+      return self.commit_filter_query(filter_query,**kwargs)
+    else:
+      raise AttributeError('EventSet(): There is no specific contract to query for events')
+    
 
 
 class Event(EventSet):
@@ -96,13 +101,17 @@ class Event(EventSet):
     self.contract = contract
 
     inputs = abi['inputs']
+
+    in_order = []
+
     for i in inputs:
+      in_order.append(i['type'])
       if i['indexed']:
         self.indexed.append(i['type'])
       else:
         self.inputs.append(i['type'])
 
-    self.event_hash = AbiEncoder.event_hash(self.name, self.indexed + self.inputs)
+    self.event_hash = AbiEncoder.event_hash(self.name, in_order)
 
   def parse_log_data(self,logs):
     ret = []
@@ -110,24 +119,40 @@ class Event(EventSet):
       if self.event_hash == self.get_event_hash_from_log(log):
         event = EventLogDict(self.name, log['blockHash'],log['transactionHash'],dec_uint(log['blockNumber']))
 
+        if not hasattr(self.contract,'address'):
+          event.address = log['address']
+
         topics = log['topics'][1:]  # First topic in list is the event hash/signature -> Keccak(EventName(type,...,type))
         data = log['data'][2:]      # First 2 bytes are '0x'
 
-        attributes = AbiEncoder.decode_event_topic(self.indexed,topics)
-        attributes = attributes + AbiEncoder.decode(self.inputs,data)
+        attr_topics = AbiEncoder.decode_event_topic(self.indexed,topics)
+        attr_data = AbiEncoder.decode(self.inputs,data)
+        attr_all = []
 
-        allattributes = []
-        i = 0
-        for attr in attributes:
-          if 'name' in self.abi['inputs'][i] and self.abi['inputs'][i]['name'] != '':
-            setattr(event,self.abi['inputs'][i]['name'],attr)
+        t = 0
+        d = 0
+
+        for abi_input in self.abi['inputs']:
+          if 'name' in abi_input and abi_input['name'] != '':
+            if 'indexed' in abi_input and abi_input['indexed'] == True:
+              setattr(event,abi_input['name'],attr_topics[t])
+              attr_all.append(attr_topics[t])
+              t = t + 1
+            else:
+              setattr(event,abi_input['name'],attr_data[d])
+              attr_all.append(attr_data[d])
+              d = d + 1
           else:
-            setattr(event,'param_%d' % i, attr)
-          allattributes.append(attr)
-          i = i + 1
+            if 'indexed' in abi_input and abi_input['indexed'] == True:
+              setattr(event,'param_%d' % d + t,attr_topics[t])
+              attr_all.append(attr_topics[t])
+              t = t + 1
+            else:
+              setattr(event,'param_%d' % d + t,attr_data[d])
+              attr_all.append(attr_data[d])
+              d = d + 1
 
-        setattr(event,'all',allattributes)
-
+        setattr(event,'all',attr_all)
         ret.append(event)
     return ret
 
@@ -141,11 +166,15 @@ class Event(EventSet):
     return topics
 
   def __call__(self,*indexed,**kwargs):
+    filter_query = {}
 
-    filter_query = { 
-      'address': self.contract.address,
-      'topics': self.topic(*indexed),
-    }
+    if hasattr(self.contract,'address'):
+      filter_query['address'] = self.contract.address
+    else:
+      if 'address' in kwargs:
+        filter_query['address'] = kwargs['address']
+    filter_query['topics'] = self.topic(*indexed)
+
     return self.commit_filter_query(filter_query,**kwargs)
   
   def all():
@@ -285,12 +314,19 @@ class ContractFunction(object):
 
     arguments = [i['type'] for i in self.inputs]
     if len(arguments) != 0:
-      data = self.signature + AbiEncoder.encode(arguments, args)
+      data = self.signature + AbiEncoder.encode(arguments, arg)
     else:
       data = self.signature
 
-    response = self.contract.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},'latest')
+    if 'blockNumber' in kwargs:
+      if isinstance(kwargs['blockNumber'],int):
+        blockNumber = hex(kwargs['blockNumber'])
+      else:
+        blockNumber = kwargs['blockNumber']
+    else:
+      blockNumber = 'latest'
 
+    response = self.contract.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},blockNumber)
     if 'result' in response:
       result = response['result']
     else:
@@ -313,25 +349,7 @@ class FunctionSet:
   '''
   pass
 
-class Contract(object):
-  def __init__(self,address,abi,**kwargs):
-    self.address = address
-    self.abi = abi
-    self.events = EventSet(self)
-    self.functions = FunctionSet()
-    self.__account = None
-
-    for attibute in self.abi:
-      if attibute['type'] == 'function':
-        setattr(self.functions,attibute['name'],ContractFunction.from_abi(attibute,self))
-
-      if attibute['type'] == 'event':
-        setattr(self.events,attibute['name'],Event(attibute,self))
-
-    if 'jsonrpc_provider' in kwargs:
-      self.jsonrpc_provider = kwargs['jsonrpc_provider']
-
-  
+class ContractBase(object):
   @property
   def blockNumber(self):
     if isinstance(self.__jsonrpc_provider,JsonRpc):
@@ -364,7 +382,42 @@ class Contract(object):
     except Exception as e:
       warn('jsonrpc_provider: throw ->' + str(e))
       self.chainId = None
-    
+
+class ContractVoid(ContractBase):
+  def __init__(self,abi,**kwargs):
+    self.abi = abi
+    self.events = EventSet(self)
+
+    for attibute in self.abi:
+      if attibute['type'] == 'event':
+        setattr(self.events,attibute['name'],Event(attibute,self))
+
+    if 'jsonrpc_provider' in kwargs:
+      self.jsonrpc_provider = kwargs['jsonrpc_provider']
+      if 'jsonrpc_basic_auth' in kwargs and isinstance(kwargs['jsonrpc_basic_auth'],tuple):
+        self.jsonrpc_provider.basic_auth = kwargs['jsonrpc_basic_auth']
+
+
+class Contract(ContractBase):
+  def __init__(self,address,abi,**kwargs):
+    self.address = address
+    self.abi = abi
+    self.events = EventSet(self)
+    self.functions = FunctionSet()
+    self.__account = None
+
+    for attibute in self.abi:
+      if attibute['type'] == 'function':
+        setattr(self.functions,attibute['name'],ContractFunction.from_abi(attibute,self))
+
+      if attibute['type'] == 'event':
+        setattr(self.events,attibute['name'],Event(attibute,self))
+
+    if 'jsonrpc_provider' in kwargs:
+      self.jsonrpc_provider = kwargs['jsonrpc_provider']
+      if 'jsonrpc_basic_auth' in kwargs and isinstance(kwargs['jsonrpc_basic_auth'],tuple):
+        self.jsonrpc_provider.basic_auth = kwargs['jsonrpc_basic_auth']
+
   @property
   def account(self):
     return self.__account

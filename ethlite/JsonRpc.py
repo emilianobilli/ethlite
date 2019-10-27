@@ -22,11 +22,13 @@ class JsonRpc:
   headers = {'content-type': 'application/json'}
   default_timeout = 10
 
-  def __init__(self, node):
+  def __init__(self, node, basic_auth=None):
     if match(valid_url_re, node) is not None:
       self.node = node
+      self.basic_auth = basic_auth
     else:
       raise ValueError('JsonRpc(): %s is not a valid url' % node)
+
 
   @classmethod
   def get_body_dict(cls):
@@ -44,12 +46,21 @@ class JsonRpc:
     return 'JsonRpc(%s)' % self.node
 
   def doPost(self,data,timeout=None):
-    return requests.post(
-      self.node,
-      data=data,
-      headers=self.headers,
-      timeout=self.default_timeout if timeout is None else timeout
-    ).json()
+    if self.basic_auth is not None:
+      return requests.post(
+        self.node,
+        data=data,
+        headers=self.headers,
+        timeout=self.default_timeout if timeout is None else timeout,
+        auth=self.basic_auth
+      ).json()
+    else:
+      return requests.post(
+        self.node,
+        data=data,
+        headers=self.headers,
+        timeout=self.default_timeout if timeout is None else timeout
+      ).json()
 
   def net_version(self):
     data = self.get_body_dict()
