@@ -333,7 +333,7 @@ class ContractFunction(object):
       raise JsonRpcError(str(response))
 
     outputs = [ouput['type'] for ouput in self.outputs ]
-    return AbiEncoder.decode(outputs,result[2:])
+    return tuple(AbiEncoder.decode(outputs,result[2:]))
 
 
   def __call__(self,*args, **kwargs):
@@ -344,6 +344,12 @@ class ContractFunction(object):
 
 
 class FunctionSet:
+  '''
+    A abstract class to contain all contract's methods/functions
+  '''
+  pass
+
+class NetworkUtil:
   '''
     A abstract class to contain all contract's methods/functions
   '''
@@ -395,7 +401,7 @@ class ContractVoid(ContractBase):
     if 'jsonrpc_provider' in kwargs:
       self.jsonrpc_provider = kwargs['jsonrpc_provider']
       if 'jsonrpc_basic_auth' in kwargs and isinstance(kwargs['jsonrpc_basic_auth'],tuple):
-        self.jsonrpc_provider.basic_auth = kwargs['jsonrpc_basic_auth']
+        self.jsonrpc_provider.auth = kwargs['jsonrpc_basic_auth']
 
 
 class Contract(ContractBase):
@@ -416,7 +422,7 @@ class Contract(ContractBase):
     if 'jsonrpc_provider' in kwargs:
       self.jsonrpc_provider = kwargs['jsonrpc_provider']
       if 'jsonrpc_basic_auth' in kwargs and isinstance(kwargs['jsonrpc_basic_auth'],tuple):
-        self.jsonrpc_provider.basic_auth = kwargs['jsonrpc_basic_auth']
+        self.jsonrpc_provider.auth = kwargs['jsonrpc_basic_auth']
 
   @property
   def account(self):

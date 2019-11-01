@@ -26,9 +26,9 @@ class JsonRpc:
     if match(valid_url_re, node) is not None:
       self.node = node
       self.basic_auth = basic_auth
+      self.instance_headers = {}
     else:
       raise ValueError('JsonRpc(): %s is not a valid url' % node)
-
 
   @classmethod
   def get_body_dict(cls):
@@ -39,18 +39,34 @@ class JsonRpc:
         'id': 1
     }
 
+  @property
+  def auth(self):
+    return self.basic_auth
+    
+  @auth.setter
+  def auth(self, auth):
+    if isinstance(auth,tuple):
+      self.basic_auth = auth
+    else:
+      raise TypeError('auth needs to be a tuple')
+
+
+
   def __str__(self):
     return self.node
   
   def __repr__(self):
     return 'JsonRpc(%s)' % self.node
 
+  def add_header(cls, key, value):
+    self.instance_headers[key] = value
+
   def doPost(self,data,timeout=None):
     if self.basic_auth is not None:
       return requests.post(
         self.node,
         data=data,
-        headers=self.headers,
+        headers={**self.headers, **self.instance_headers},
         timeout=self.default_timeout if timeout is None else timeout,
         auth=self.basic_auth
       ).json()
@@ -58,7 +74,7 @@ class JsonRpc:
       return requests.post(
         self.node,
         data=data,
-        headers=self.headers,
+        headers={**self.headers, **self.instance_headers},
         timeout=self.default_timeout if timeout is None else timeout
       ).json()
 
