@@ -81,6 +81,7 @@ class EventSet:
       }
       return self.commit_filter_query(filter_query,**kwargs)
     else:
+      
       raise AttributeError('EventSet(): There is no specific contract to query for events')
     
 
@@ -356,6 +357,13 @@ class NetworkUtil:
   pass
 
 class ContractBase(object):
+
+  def __init__(self,**kwargs):
+    if 'jsonrpc_provider' in kwargs:
+      self.jsonrpc_provider = kwargs['jsonrpc_provider']
+      if 'jsonrpc_basic_auth' in kwargs and isinstance(kwargs['jsonrpc_basic_auth'],tuple):
+        self.jsonrpc_provider.auth = kwargs['jsonrpc_basic_auth']
+
   @property
   def blockNumber(self):
     if isinstance(self.__jsonrpc_provider,JsonRpc):
@@ -394,14 +402,11 @@ class ContractVoid(ContractBase):
     self.abi = abi
     self.events = EventSet(self)
 
+    ContractBase.__init__(self,**kwargs)
+
     for attibute in self.abi:
       if attibute['type'] == 'event':
         setattr(self.events,attibute['name'],Event(attibute,self))
-
-    if 'jsonrpc_provider' in kwargs:
-      self.jsonrpc_provider = kwargs['jsonrpc_provider']
-      if 'jsonrpc_basic_auth' in kwargs and isinstance(kwargs['jsonrpc_basic_auth'],tuple):
-        self.jsonrpc_provider.auth = kwargs['jsonrpc_basic_auth']
 
 
 class Contract(ContractBase):
@@ -412,17 +417,14 @@ class Contract(ContractBase):
     self.functions = FunctionSet()
     self.__account = None
 
+    ContractBase.__init__(self, **kwargs)
+
     for attibute in self.abi:
       if attibute['type'] == 'function':
         setattr(self.functions,attibute['name'],ContractFunction.from_abi(attibute,self))
 
       if attibute['type'] == 'event':
         setattr(self.events,attibute['name'],Event(attibute,self))
-
-    if 'jsonrpc_provider' in kwargs:
-      self.jsonrpc_provider = kwargs['jsonrpc_provider']
-      if 'jsonrpc_basic_auth' in kwargs and isinstance(kwargs['jsonrpc_basic_auth'],tuple):
-        self.jsonrpc_provider.auth = kwargs['jsonrpc_basic_auth']
 
   @property
   def account(self):
