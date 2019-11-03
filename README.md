@@ -56,9 +56,10 @@ If the contract instance is created (not exception is thrown), each functions an
 
 The void contract instance is a way to query for events in all contracts that share se same abi. 
 
+```
 >> contract = ContractVoid(abi)
 >> contract.net.jsonrpc_provider = 'https://kovan.infura.io'
-
+```
 
 ### Call "View" functions
 
