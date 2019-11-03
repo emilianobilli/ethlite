@@ -46,6 +46,12 @@ To create a new contract instance it is necessary to know the **address** and th
 # Other way to init it with only one call
 >> contract = Contract(address,abi,jsonrpc_provider='https://kovan.infura.io')
 
+### Create a Void contract instance
+
+The void contract instance is a way to query for events in all contracts that share se same abi. 
+
+>> contract = ContractVoid(abi)
+>> contract.net.jsonrpc_provider = 'https://kovan.infura.io'
 
 
 ```
