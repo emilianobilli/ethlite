@@ -7,6 +7,7 @@ from .Account import Account
 from .JsonRpc import JsonRpc
 from .JsonRpc import JsonRpcError
 
+
 class EventLogDict:
   '''
     Represents the parsed return of the logs. Each time a contract 
@@ -30,9 +31,9 @@ class EventLogDict:
     return getattr(self,key)
   
 
-class EventSet:
+class EventBase:
   '''
-    A abstract class to contain all events 
+    A abstract class of Events
   '''
   valid_kwargs = ['fromBlock', 'toBlock', 'blockHash']
 
@@ -47,47 +48,69 @@ class EventSet:
         else:
           filter_query[kw] = kwargs[kw]
     
-    jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
+    jsonrpc_valid = True if isinstance(self.contract.net.jsonrpc_provider,JsonRpc) else False
 
     if not jsonrpc_valid:
       raise AttributeError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
     
-    response = self.contract.jsonrpc_provider.eth_getLogs(filter_query)
+    response = self.contract.net.jsonrpc_provider.eth_getLogs(filter_query)
 
     if 'result' in response:
-      return self.parse_log_data(response['result'])
+      return self.parseLogData(response['result'])
     else:
       raise JsonRpcError(str(response))
-
 
   def get_event_hash_from_log(self, log):
     return log['topics'][0]
 
-  def parse_log_data(self, logs):
+  def parseLogData(self, logs):
+    raise NotImplementedError('EventBase.parseLogData()')
+
+
+class EventSet(EventBase):
+
+  def __init__(self,contract):
+    EventBase.__init__(self,contract)
+
+  def parseLogData(self, logs):
     ret = []
     for log in logs:
       for self_event in self.__dict__.keys():
         if self_event == 'contract' or self_event == 'valid_kwargs':
           continue
         if self.__dict__[self_event].event_hash == self.get_event_hash_from_log(log):
-          ret = ret + self.__dict__[self_event].parse_log_data([log])
+          ret = ret + self.__dict__[self_event].parseLogData([log])
 
     return ret
 
-  def all(self,**kwargs):
+  def rawQuery(self, rawTopics, **kwargs):
+    filter_query = {}
+
+    if hasattr(self.contract,'address'):
+      filter_query['address'] = self.contract.address
+    else:
+      if 'address' in kwargs:
+        filter_query['address'] = kwargs['address']
+
+    filter_query['topics'] = rawTopics
+    return self.commit_filter_query(filter_query,**kwargs)
+  
+
+  def getAll(self,**kwargs):
     if hasattr(self.contract,'address') or 'address' in kwargs:
       filter_query = { 
         'address': self.contract.address if hasattr(self.contract,'address') else kwargs['address'],
       }
       return self.commit_filter_query(filter_query,**kwargs)
     else:
-      
       raise AttributeError('EventSet(): There is no specific contract to query for events')
     
 
+class Event(EventBase):
 
-class Event(EventSet):
   def __init__(self, abi=None, contract=None):
+
+    EventBase.__init__(self,contract)
 
     if abi is None:
       raise ValueError('Event(): abi can not be None')
@@ -99,7 +122,6 @@ class Event(EventSet):
     self.name = abi['name']
     self.indexed = []
     self.inputs = []
-    self.contract = contract
 
     inputs = abi['inputs']
 
@@ -114,7 +136,7 @@ class Event(EventSet):
 
     self.event_hash = AbiEncoder.event_hash(self.name, in_order)
 
-  def parse_log_data(self,logs):
+  def parseLogData(self,logs):
     ret = []
     for log in logs:
       if self.event_hash == self.get_event_hash_from_log(log):
@@ -178,10 +200,6 @@ class Event(EventSet):
 
     return self.commit_filter_query(filter_query,**kwargs)
   
-  def all():
-    pass
-
-
 class ContractFunction(object):
   '''
     This class represents a function of the contract. 
@@ -218,7 +236,7 @@ class ContractFunction(object):
       TypeError('rawTransaction(): This function is constant')
 
 
-    jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
+    jsonrpc_valid = True if isinstance(self.contract.net.jsonrpc_provider,JsonRpc) else False
 
     if not jsonrpc_valid:
       raise AttributeError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
@@ -257,7 +275,7 @@ class ContractFunction(object):
     if 'nonce' in kwargs:
       tx.nonce = kwargs['nonce']
     else:
-      response = self.contract.jsonrpc_provider.eth_getTransactionCount(self.contract.account.addr,'latest')
+      response = self.contract.net.jsonrpc_provider.eth_getTransactionCount(self.contract.account.addr,'latest')
       if 'result' in response:
         tx.nonce = response['result']
       else:
@@ -276,8 +294,8 @@ class ContractFunction(object):
     else:
       tx.gasPrice = self.contract.default_gasPrice
     
-    if self.contract.chainId is not None:
-      tx.chainId = self.contract.chainId
+    if self.contract.net.chainId is not None:
+      tx.chainId = self.contract.net.chainId
     else:
       if 'chainId' in kwargs:
         tx.chainId = kwargs['chainId']
@@ -285,7 +303,7 @@ class ContractFunction(object):
     if 'gasLimit' in kwargs:
       tx.gasLimit = kwargs['gasLimit']
     else:
-      response = self.contract.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False, hexstring=True))
+      response = self.contract.net.jsonrpc_provider.eth_estimateGas(tx.to_dict(signature=False, hexstring=True))
       if 'result' in response:
         tx.gasLimit = response['result']
       else:
@@ -295,21 +313,21 @@ class ContractFunction(object):
 
 
   def commit(self, *args, **kwargs):
-    jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
+    jsonrpc_valid = True if isinstance(self.contract.net.jsonrpc_provider,JsonRpc) else False
     if not jsonrpc_valid:
       raise AttributeError('commit(): Unable to found a valid jsonrpc_provider')
     
     rawTransaction = self.rawTransaction(*args,**kwargs)
-    response = self.contract.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)
+    response = self.contract.net.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)
 
     if 'result' in response:
-      return CommitedTransaction(response['result'],self.contract.jsonrpc_provider)
+      return CommitedTransaction(response['result'],self.contract.net.jsonrpc_provider)
     else:
       raise JsonRpcError(str(response))
 
 
   def call(self, *arg, **kwargs):
-    jsonrpc_valid = True if isinstance(self.contract.jsonrpc_provider,JsonRpc) else False
+    jsonrpc_valid = True if isinstance(self.contract.net.jsonrpc_provider,JsonRpc) else False
     if not jsonrpc_valid:
       raise AttributeError('call(): Unable to found a valid jsonrpc_provider')
 
@@ -327,7 +345,7 @@ class ContractFunction(object):
     else:
       blockNumber = 'latest'
 
-    response = self.contract.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},blockNumber)
+    response = self.contract.net.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},blockNumber)
     if 'result' in response:
       result = response['result']
     else:
@@ -352,40 +370,13 @@ class FunctionSet:
 
 class NetworkUtil:
   '''
-    A abstract class to contain all contract's methods/functions
+    A class to contain all network attributes and contract's methods/functions
   '''
-  pass
+  def __init__(self,provider,basicauth=()):
+    self.jsonrpc_provider = provider
+    if basicauth is not ():
+      self.jsonrpc_provider.auth = basicauth
 
-class ContractBase(object):
-
-  def __init__(self,**kwargs):
-    if 'jsonrpc_provider' in kwargs:
-      self.jsonrpc_provider = kwargs['jsonrpc_provider']
-      if 'jsonrpc_basic_auth' in kwargs and isinstance(kwargs['jsonrpc_basic_auth'],tuple):
-        self.jsonrpc_provider.auth = kwargs['jsonrpc_basic_auth']
-
-  @property
-  def blockNumber(self):
-    if isinstance(self.__jsonrpc_provider,JsonRpc):
-      response = self.jsonrpc_provider.eth_blockNumber()
-      if 'result' in response:
-        return dec_uint(response['result'])
-      else:
-        raise JsonRpcError(str(response))
-    else:
-      return None
-
-  @property
-  def jsonrpc_provider(self):
-    return self.__jsonrpc_provider
-
-  @jsonrpc_provider.setter
-  def jsonrpc_provider(self, jsonrpc_provider):
-    self.__jsonrpc_provider = JsonRpc(jsonrpc_provider)
-    '''
-      After to initialize the jsonrpc_provider
-      the contract neet to query the chainid
-    '''
     try:
       response = self.__jsonrpc_provider.eth_chainId()
       if 'result' in response:
@@ -396,6 +387,61 @@ class ContractBase(object):
     except Exception as e:
       warn('jsonrpc_provider: throw ->' + str(e))
       self.chainId = None
+
+  @property
+  def blockNumber(self):
+    if isinstance(self.__jsonrpc_provider, JsonRpc):
+      response = self.jsonrpc_provider.eth_blockNumber()
+      if 'result' in response:
+        return dec_uint(response['result'])
+      else:
+        raise JsonRpcError(str(response))
+    else:
+      return None
+      
+  @blockNumber.setter
+  def blockNumber(self, blockNumber):
+    raise AttributeError('Only the network can set a blockNumer')
+
+  @property
+  def jsonrpc_provider(self):
+    return self.__jsonrpc_provider
+
+  @jsonrpc_provider.setter
+  def jsonrpc_provider(self, jsonrpc_provider):
+    if isinstance(jsonrpc_provider, JsonRpc):
+      self.__jsonrpc_provider = jsonrpc_provider
+    else:
+      self.__jsonrpc_provider = JsonRpc(jsonrpc_provider)
+
+
+class ContractBase(object):
+
+  def __init__(self,**kwargs):
+
+    if 'jsonrpc_provider' in kwargs:
+      provider = kwargs['jsonrpc_provider']
+      basicauth = ()
+      if 'jsonrpc_basicauth' in kwargs and isinstance(kwargs['jsonrpc_basicauth'],tuple):
+        basicauth = kwargs['jsonrpc_basicauth']
+
+      self.__net = NetworkUtil(provider,basicauth)
+    else:
+      self.__net = None
+
+
+  @property
+  def net(self):
+    return self.__net
+
+
+  @net.setter
+  def net(self,net):
+    if isinstance(net,NetworkUtil):
+      self.__net = net
+    else:
+      raise TypeError('net must be a NetworkUtil instance')
+
 
 class ContractVoid(ContractBase):
   def __init__(self,abi,**kwargs):
