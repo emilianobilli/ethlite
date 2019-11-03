@@ -372,22 +372,31 @@ class NetworkUtil:
   '''
     A class to contain all network attributes and contract's methods/functions
   '''
-  def __init__(self,provider,basicauth=()):
-    self.jsonrpc_provider = provider
-    if basicauth is not ():
-      self.jsonrpc_provider.auth = basicauth
+  def __init__(self,provider=None,basicauth=()):
+    if provider is not None:
+      self.jsonrpc_provider = provider
+      if basicauth is not ():
+        self.jsonrpc_provider.auth = basicauth
 
-    try:
-      response = self.__jsonrpc_provider.eth_chainId()
-      if 'result' in response:
-        self.chainId = response['result']
-      else:
-        warn('jsonrpc_provider: No support eth_chainId() method -> ' + str(response))
-        self.chainId = None
-    except Exception as e:
-      warn('jsonrpc_provider: throw ->' + str(e))
-      self.chainId = None
+    self.__chainId = None
 
+  @property
+  def chainId(self):
+    if self.__chainId != None:
+      return self.__chainId
+    else:
+      try:
+        response = self.jsonrpc_provider.eth_chainId()
+        if 'result' in response:
+          self.__chainId = response['result']
+        else:
+          warn('jsonrpc_provider: No support eth_chainId() method -> ' + str(response))
+          self.__chainId = None
+      except Exception as e:
+        warn('jsonrpc_provider: throw ->' + str(e))
+        self.__chainId = None
+      return self.__chainId
+    
   @property
   def blockNumber(self):
     if isinstance(self.__jsonrpc_provider, JsonRpc):
@@ -427,7 +436,7 @@ class ContractBase(object):
 
       self.__net = NetworkUtil(provider,basicauth)
     else:
-      self.__net = None
+      self.__net = NetworkUtil()
 
 
   @property

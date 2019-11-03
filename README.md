@@ -41,10 +41,12 @@ To create a new contract instance it is necessary to know the **address** and th
 
 
 >> contract = Contract(address,abi)
->> contract.jsonrpc_provider = 'https://kovan.infura.io'
+>> contract.net.jsonrpc_provider = 'https://kovan.infura.io'
 
 # Other way to init it with only one call
 >> contract = Contract(address,abi,jsonrpc_provider='https://kovan.infura.io')
+
+
 
 ```
 If the contract instance is created (not exception is thrown), each functions and events of the contract are created as a instance of the class **ContractFunction** and **Event** respectively as attributes of **functions** and **events**.
@@ -150,7 +152,7 @@ When the contract is initialized with the abi, all events are attributes of the 
 #### Query for all events that's occurred between the block 0 and the block 100000
 
 ```
->> logs = contract.events.all(fromblock=0x0,toBlock=0x2710)
+>> logs = contract.events.getAll(fromblock=0x0,toBlock=0x2710)
 ```
 
 #### Parse logs in the receipt
@@ -161,7 +163,7 @@ When the contract is initialized with the abi, all events are attributes of the 
 >>  sleep(1)
 >>  receipt = tx.receipt()
 >>
->> logs = contract.events.parse_log_data(receipt['logs'])
+>> logs = contract.events.parseLogData(receipt['logs'])
 ```
 
 #### Return value
