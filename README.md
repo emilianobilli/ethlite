@@ -45,6 +45,12 @@ To create a new contract instance it is necessary to know the **address** and th
 
 # Other way to init it with only one call
 >> contract = Contract(address,abi,jsonrpc_provider='https://kovan.infura.io')
+```
+
+If the contract instance is created (not exception is thrown), each functions and events of the contract are created as a instance of the class **ContractFunction** and **Event** respectively as attributes of **functions** and **events**.
+
+- In contract.events are defined all the events as Event() 
+- In contract.functions are defined all the functions as ContractFunction()
 
 ### Create a Void contract instance
 
@@ -53,12 +59,6 @@ The void contract instance is a way to query for events in all contracts that sh
 >> contract = ContractVoid(abi)
 >> contract.net.jsonrpc_provider = 'https://kovan.infura.io'
 
-
-```
-If the contract instance is created (not exception is thrown), each functions and events of the contract are created as a instance of the class **ContractFunction** and **Event** respectively as attributes of **functions** and **events**.
-
-- In contract.events are defined all the events as Event() 
-- In contract.functions are defined all the functions as ContractFunction()
 
 ### Call "View" functions
 
