@@ -157,7 +157,7 @@ class Event(EventBase):
 
         for abi_input in self.abi['inputs']:
           if 'name' in abi_input and abi_input['name'] != '':
-            if 'indexed' in abi_input and abi_input['indexed'] == True:
+            if 'indexed' in abi_input and abi_input['indexed']:
               setattr(event,abi_input['name'],attr_topics[t])
               attr_all.append(attr_topics[t])
               t = t + 1
@@ -166,7 +166,7 @@ class Event(EventBase):
               attr_all.append(attr_data[d])
               d = d + 1
           else:
-            if 'indexed' in abi_input and abi_input['indexed'] == True:
+            if 'indexed' in abi_input and abi_input['indexed']:
               setattr(event,'param_%d' % d + t,attr_topics[t])
               attr_all.append(attr_topics[t])
               t = t + 1
@@ -228,7 +228,7 @@ class ContractFunction(object):
     return cls(signature,abi['inputs'],abi['outputs'],abi['stateMutability'],abi['payable'],abi['constant'],contract)
 
   def rawTransaction(self,*args,**kwargs):
-    if self.constant == True:
+    if self.constant:
       '''
           Solamente las llamadas a funciones generan cambios de estado en el contrato pueden
           generar transacciones
@@ -241,7 +241,7 @@ class ContractFunction(object):
     if not jsonrpc_valid:
       raise AttributeError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
 
-    if 'value' in kwargs and self.payable == False:
+    if 'value' in kwargs and not self.payable:
       raise ValueError('rawTransaction(): value received to a non-payable function')
 
     if 'account' in kwargs:
@@ -281,7 +281,7 @@ class ContractFunction(object):
       else:
         raise JsonRpcError(str(response))
   
-    if self.payable == True and self.stateMutability == 'payable' and 'value' in kwargs:
+    if self.payable and self.stateMutability == 'payable' and 'value' in kwargs:
       tx.value = kwargs['value']
     else:
       tx.value = 0
@@ -356,10 +356,11 @@ class ContractFunction(object):
 
 
   def __call__(self,*args, **kwargs):
-    if self.constant == False:
-      return self.commit(*args,**kwargs)
-    else:
+    if self.constant:
       return self.call(*args,**kwargs)
+    else:
+      return self.commit(*args,**kwargs)
+      
 
 
 class FunctionSet:
