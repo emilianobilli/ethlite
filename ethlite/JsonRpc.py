@@ -51,7 +51,6 @@ class JsonRpc:
       raise TypeError('auth needs to be a tuple')
 
 
-
   def __str__(self):
     return self.node
   

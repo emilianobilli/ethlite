@@ -50,3 +50,5 @@ ethlite.egg-info/requires.txt
 guestbook.py
 *.whl
 *.gz
+test_event.py
+test_tokensets.py
