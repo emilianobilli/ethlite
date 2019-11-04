@@ -54,7 +54,7 @@ If the contract instance is created (not exception is thrown), each functions an
 
 ### Create a Void contract instance
 
-The void contract instance is a way to query for events in all contracts that share se same abi. 
+The void contract instance is a way to query for events in all contracts that share the same abi. 
 
 ```
 >> contract = ContractVoid(abi)
