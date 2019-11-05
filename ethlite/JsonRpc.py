@@ -175,3 +175,12 @@ class JsonRpc:
     data['params'].append(obj)
     return self.doPost(dumps(data))
 
+  def eth_getBlockByNumber(self,blocknumber,withtx):
+    '''
+      Returns information about a block by block number.
+    '''
+    data = self.get_body_dict()
+    data['method'] = 'eth_getBlockByNumber'
+    data['params'].append(blocknumber)
+    data['params'].append(withtx)
+    return self.doPost(dumps(data))
