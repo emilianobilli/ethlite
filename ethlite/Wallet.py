@@ -4,7 +4,7 @@ from .Account import Account
 from .JsonRpc import JsonRpc
 from .JsonRpc import JsonRpcError
 from .Transaction import Transaction
-from .CommitedTransaction import CommitedTransaction
+from .CommittedTransaction import CommittedTransaction
 
 class Wallet:
   def __init__(self, http_provider):
@@ -101,6 +101,6 @@ class Wallet:
     if 'result' not in response:
       raise JsonRpcError(str(response))
     
-    return CommitedTransaction(response['result'],self.jsonrpc_provider)
+    return CommittedTransaction(response['result'],self.jsonrpc_provider)
 
       

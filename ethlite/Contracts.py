@@ -2,7 +2,7 @@ from warnings import warn
 from .Abi import AbiEncoder
 from .Abi import dec_uint
 from .Transaction import Transaction
-from .CommitedTransaction import CommitedTransaction
+from .CommittedTransaction import CommittedTransaction
 from .Account import Account
 from .JsonRpc import JsonRpc
 from .JsonRpc import JsonRpcError
@@ -323,7 +323,7 @@ class ContractFunction(object):
     response = self.contract.net.jsonrpc_provider.eth_sendRawTransaction(rawTransaction)
 
     if 'result' in response:
-      return CommitedTransaction(response['result'],self.contract.net.jsonrpc_provider)
+      return CommittedTransaction(response['result'],self.contract.net.jsonrpc_provider)
     else:
       raise JsonRpcError(str(response))
 

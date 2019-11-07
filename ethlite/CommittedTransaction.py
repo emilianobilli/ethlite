@@ -1,14 +1,14 @@
 from .JsonRpc import JsonRpc
 from .Abi import dec_uint
 
-class CommitedTransaction:
+class CommittedTransaction:
   def __init__(self, transactionHash, jsonrpc_provider):
     self.transactionHash = transactionHash
     self.jsonrpc_provider = jsonrpc_provider
     self.receipt_returned = None
 
   def __str__(self):
-    return 'CommitedTransaction(%s)' % self.transactionHash
+    return 'CommittedTransaction(%s)' % self.transactionHash
 
   def receipt(self):
     uint_keys = ['blockNumber', 'cumulativeGasUsed', 'gasUsed', 'status', 'transactionIndex']
