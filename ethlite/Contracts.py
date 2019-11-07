@@ -2,10 +2,10 @@ from warnings import warn
 from .Abi import AbiEncoder
 from .Abi import dec_uint
 from .Transaction import Transaction
-from .CommittedTransaction import CommittedTransaction
 from .Account import Account
 from .JsonRpc import JsonRpc
 from .JsonRpc import JsonRpcError
+from .NetworkUtil import CommittedTransaction
 from .NetworkUtil import NetworkUtil
 
 

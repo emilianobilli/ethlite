@@ -4,7 +4,7 @@ from .Account import Account
 from .JsonRpc import JsonRpc
 from .JsonRpc import JsonRpcError
 from .Transaction import Transaction
-from .CommittedTransaction import CommittedTransaction
+from .NetworkUtil import CommittedTransaction
 
 class Wallet:
   def __init__(self, http_provider):
