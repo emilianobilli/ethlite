@@ -10,6 +10,9 @@ from sha3 import keccak_256
 
 ARRAY_DYNAMIC_SIZE = -1
 
+class AbiDecodeError(Exception):
+  pass
+
 
 '''
   Functions to sanitize and pad left/right 
@@ -460,13 +463,16 @@ class AbiEncoder:
 
     offset = 0
     for arg in arguments:
-      decode_argument, i = decode(arg,data,offset)
-      offset = offset + i
-      ret.append(decode_argument)
+      try:
+        decode_argument, i = decode(arg,data,offset)
+      except Exception as e:
+        raise AbiDecodeError(str(e))
+      else:
+        offset = offset + i
+        ret.append(decode_argument)
 
     if len(ret) != len(arguments):
-      # raise
-      pass
+      raise AbiDecodeError("Invalid argument count, expected %d and %d received" % (len(arguments), len(ret))) 
 
     return ret
 

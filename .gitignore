@@ -54,3 +54,4 @@ test_event.py
 test_tokensets.py
 build/lib/ethlite/NetworkUtil.py
 test_display.py
+bot.py

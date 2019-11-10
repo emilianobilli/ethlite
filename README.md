@@ -40,11 +40,11 @@ To create a new contract instance it is necessary to know the **address** and th
 >> abi = loads('[{"constant":false,"inputs":[{"name":"u","type":"uint256"},{"name":"i","type":"int256"}],"name":"change","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getValues","outputs":[{"name":"","type":"uint256"},{"name":"","type":"int256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"uint256"}],"name":"change_uint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"val","type":"int256"}],"name":"change_int","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"uint256"}],"name":"UintChange","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"changer","type":"address"},{"indexed":false,"name":"u","type":"int256"}],"name":"IntChange","type":"event"}]')
 
 
->> contract = Contract(address,abi)
+>> contract = Contract(abi, address=address)
 >> contract.net.jsonrpc_provider = 'https://kovan.infura.io'
 
 # Other way to init it with only one call
->> contract = Contract(address,abi,jsonrpc_provider='https://kovan.infura.io')
+>> contract = Contract(abi, address=address, jsonrpc_provider='https://kovan.infura.io')
 ```
 
 If the contract instance is created (not exception is thrown), each functions and events of the contract are created as a instance of the class **ContractFunction** and **Event** respectively as attributes of **functions** and **events**.
@@ -54,10 +54,10 @@ If the contract instance is created (not exception is thrown), each functions an
 
 ### Create a Void contract instance
 
-The void contract instance is a way to query for events in all contracts that share the same abi. 
+The void contract instance is a way to query for events in all contracts that share the same abi. You can initialice a Contract void not passing an address at __init__
 
 ```
->> contract = ContractVoid(abi)
+>> contract = Contract(abi)
 >> contract.net.jsonrpc_provider = 'https://kovan.infura.io'
 ```
 

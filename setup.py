@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="ethlite",
-    version="0.0.6",
+    version="0.0.7",
     author="Emiliano A. Billi",
     author_email="emiliano.billi@gmail.com",
     description="A tiny web3/python alternative to interact with any ethereum compatible blockchain",

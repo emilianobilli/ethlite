@@ -1,6 +1,7 @@
 from warnings import warn
 from .Abi import AbiEncoder
 from .Abi import dec_uint
+from .Abi import AbiDecodeError
 from .Transaction import Transaction
 from .Account import Account
 from .JsonRpc import JsonRpc
@@ -288,7 +289,13 @@ class ContractFunction(object):
     else:
       tx.value = 0
 
-    tx.to = self.contract.address
+    if hasattr(self.contract, 'address'):
+      tx.to = self.contract.address
+    elif 'address' in kwargs:
+      tx.to = kwargs['address']
+    else:
+      raise AttributeError('call(): Unable to found address to call the contract')
+
     tx.data = self.signature + data
   
     if 'gasPrice' in kwargs:
@@ -347,14 +354,29 @@ class ContractFunction(object):
     else:
       blockNumber = 'latest'
 
-    response = self.contract.net.jsonrpc_provider.eth_call({'to': self.contract.address, 'data': data},blockNumber)
+    if hasattr(self.contract, 'address'):
+      to = self.contract.address
+    elif 'address' in kwargs:
+      to = kwargs['address']
+    else:
+      raise AttributeError('call(): Unable to found address to call the contract')
+
+    response = self.contract.net.jsonrpc_provider.eth_call({'to': to , 'data': data},blockNumber)
     if 'result' in response:
       result = response['result']
     else:
       raise JsonRpcError(str(response))
 
-    outputs = [ouput['type'] for ouput in self.outputs ]
-    return tuple(AbiEncoder.decode(outputs,result[2:]))
+    if result == '0x':
+      return_decoded = [None] * len(self.outputs)
+    else:
+      outputs = [ouput['type'] for ouput in self.outputs ]
+      return_decoded = AbiEncoder.decode(outputs,result[2:])
+
+    if len(return_decoded) == 1:
+      return return_decoded[0]
+
+    return tuple(return_decoded)
 
 
   def __call__(self,*args, **kwargs):
@@ -400,22 +422,12 @@ class ContractBase(object):
       raise TypeError('net must be a NetworkUtil instance')
 
 
-class ContractVoid(ContractBase):
+class Contract(ContractBase):
   def __init__(self,abi,**kwargs):
     self.abi = abi
-    self.events = EventSet(self)
+    if 'address' in kwargs:
+      self.address = kwargs['address']
 
-    ContractBase.__init__(self,**kwargs)
-
-    for attibute in self.abi:
-      if attibute['type'] == 'event':
-        setattr(self.events,attibute['name'],Event(attibute,self))
-
-
-class Contract(ContractBase):
-  def __init__(self,address,abi,**kwargs):
-    self.address = address
-    self.abi = abi
     self.events = EventSet(self)
     self.functions = FunctionSet()
     self.__account = None
