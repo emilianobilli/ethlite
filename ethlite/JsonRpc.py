@@ -24,6 +24,7 @@ class JsonRpc:
 
   def __init__(self, node, basic_auth=None):
     if match(valid_url_re, node) is not None:
+      self.session = requests.Session()
       self.node = node
       self.basic_auth = basic_auth
       self.instance_headers = {}
@@ -62,7 +63,7 @@ class JsonRpc:
 
   def doPost(self,data,timeout=None):
     if self.basic_auth is not None:
-      return requests.post(
+      return self.session.post(
         self.node,
         data=data,
         headers={**self.headers, **self.instance_headers},
@@ -70,7 +71,7 @@ class JsonRpc:
         auth=self.basic_auth
       ).json()
     else:
-      return requests.post(
+      return self.session.post(
         self.node,
         data=data,
         headers={**self.headers, **self.instance_headers},

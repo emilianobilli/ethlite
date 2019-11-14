@@ -55,3 +55,5 @@ test_tokensets.py
 build/lib/ethlite/NetworkUtil.py
 test_display.py
 bot.py
+view-auction.py
+auction_data.txt
