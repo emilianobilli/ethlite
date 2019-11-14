@@ -48,6 +48,7 @@ class JsonRpc:
   def auth(self, auth):
     if isinstance(auth,tuple):
       self.basic_auth = auth
+      self.session.auth = auth
     else:
       raise TypeError('auth needs to be a tuple')
 
@@ -62,21 +63,12 @@ class JsonRpc:
     self.instance_headers[key] = value
 
   def doPost(self,data,timeout=None):
-    if self.basic_auth is not None:
-      return self.session.post(
-        self.node,
-        data=data,
-        headers={**self.headers, **self.instance_headers},
-        timeout=self.default_timeout if timeout is None else timeout,
-        auth=self.basic_auth
-      ).json()
-    else:
-      return self.session.post(
-        self.node,
-        data=data,
-        headers={**self.headers, **self.instance_headers},
-        timeout=self.default_timeout if timeout is None else timeout
-      ).json()
+    return self.session.post(
+      self.node,
+      data=data,
+      headers={**self.headers, **self.instance_headers},
+      timeout=self.default_timeout if timeout is None else timeout
+    ).json()
 
   def net_version(self):
     data = self.get_body_dict()
