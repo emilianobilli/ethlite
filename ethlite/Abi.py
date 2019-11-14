@@ -139,6 +139,8 @@ def dec_bytes(words, offset):
   b = '0x'
   offset = bytes_to_word_address(dec_uint(words[offset]))
   length = dec_uint(words[offset]) * 2
+  if length == 0:
+    return b
   offset = offset + 1
   w = length // 64
   m = length % 64

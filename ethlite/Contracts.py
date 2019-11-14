@@ -303,12 +303,12 @@ class ContractFunction(object):
     else:
       tx.gasPrice = self.contract.default_gasPrice
     
-    if self.contract.net.chainId is not None:
-      tx.chainId = self.contract.net.chainId
+    if 'chainId' in kwargs:
+      tx.chainId = kwargs['chainId']
     else:
-      if 'chainId' in kwargs:
-        tx.chainId = kwargs['chainId']
-
+      if self.contract.net.chainId is not None:
+        tx.chainId = self.contract.net.chainId
+  
     if 'gasLimit' in kwargs:
       tx.gasLimit = kwargs['gasLimit']
     else:
