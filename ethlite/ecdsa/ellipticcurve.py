@@ -106,6 +106,24 @@ class Point( object ):
 
     return Point( self.__curve, x3, y3 )
 
+
+  def __sub__( self, other ):
+    """Subtract two points on the same elliptic curve.
+    Args:
+        | self (:class:`Point`): a point :math:`P` on the curve
+        | other (:class:`Point`): a point :math:`Q` on the curve
+    Returns:
+        :class:`Point`: A point :math:`R` such that :math:`R = P - Q`
+    """
+    if self == other:
+      return INFINITY
+    elif other == INFINITY:
+      return self
+
+    negative = Point(other.__curve, other.__x, -other.__y % other.__curve.p())
+    return self.__add__(negative)
+
+
   def __mul__( self, other ):
     """Multiply a point by an integer."""
 

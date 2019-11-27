@@ -4,8 +4,6 @@ class Rlp:
   '''
     Rlp encode library
     Docs: https://ethereum.github.io/yellowpaper/paper.pdf
-    ToDo:
-      - Decode
   '''
   @classmethod
   def encode(cls,value, encoding='hex'):
@@ -16,14 +14,62 @@ class Rlp:
     else:
       raise ValueError('encode(): Invalid argument value, encoding=<bytearray|hex>')
 
+
   @classmethod
   def decode(cls,value):
-    return
+    if isinstance(value,str) and value.startswith('0x'):
+      decoded, length = cls.decode_data(value[2:])
+      if length == len(value[2:]):
+        return decoded
+      else:
+        raise ValueError('Rlp.decode(): The value is not a RLP encode data ')
+    else:
+      raise TypeError('Rlp.decode(): expect a hexstring')
+
+
+  @classmethod
+  def decode_data(cls,data):
+    prefix = int(data[:2],16)
+    if prefix < 0xc0: # String
+      if prefix <= 0x7f:
+        return (cls.tohex(prefix), 2)
+      elif prefix <= 0xb7:
+        data_len = prefix - 0x80
+        if data_len == 0:
+          return ('',2)
+        return ('0x' + data[2:2+(data_len*2)],2+data_len*2)
+      else:
+        len_of_data_len = prefix - 0xb7
+        data_len = int(data[2:2+(len_of_data_len*2)],16)
+        return ('0x' + data[2+(len_of_data_len*2):2+(len_of_data_len*2)+(data_len*2)],1*2+len_of_data_len*2+data_len*2)
+    else: # List
+      ret = []
+      if prefix < 0xf8:
+        payload_len = (prefix - 0xc0) * 2
+        offset = 2
+      else:
+        payload_len = int(data[2:2+(prefix - 0xf7) * 2],16) * 2
+        offset = 2 + (prefix - 0xf7) * 2
+      bytes_to_decode = payload_len 
+      while bytes_to_decode > 0:
+        value, shift = cls.decode_data(data[offset:])
+        ret.append(value)
+        bytes_to_decode = bytes_to_decode - shift
+        offset = offset + shift
+      return ret, offset
+
 
   @staticmethod
   def bigendian_tohex_padleft(value):
     v = hex(value)[2:]
     return '0' + v if len(v) % 2 == 1 else v
+
+  @staticmethod
+  def tohex(i):
+    s = hex(i)
+    if len(s[2:]) % 2 == 1:
+      return '0x0' + s[2:]
+    return s 
 
   @staticmethod
   def string_tohex(value):

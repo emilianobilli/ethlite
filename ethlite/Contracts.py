@@ -403,11 +403,9 @@ class ContractBase(object):
       basicauth = ()
       if 'jsonrpc_basicauth' in kwargs and isinstance(kwargs['jsonrpc_basicauth'],tuple):
         basicauth = kwargs['jsonrpc_basicauth']
-
       self.__net = NetworkUtil(provider,basicauth)
     else:
       self.__net = NetworkUtil()
-
 
   @property
   def net(self):
@@ -421,6 +419,21 @@ class ContractBase(object):
     else:
       raise TypeError('net must be a NetworkUtil instance')
 
+
+  @property
+  def balance(self):
+    if not hasattr(self,'address'):
+      raise AttributeError('Impossible to get balance in abstract contract')
+    
+    response = self.net.jsonrpc_provider.eth_getBalance(self.address,'latest')
+    if 'result' in response:
+      return dec_uint(response['result'])
+    else:
+      raise JsonRpcError(str(response))
+
+  @balance.setter
+  def balance(self,balance):
+    raise AttributeError('Impossible to set balance, send amount to do it')
 
 class Contract(ContractBase):
   def __init__(self,abi,**kwargs):
@@ -441,6 +454,7 @@ class Contract(ContractBase):
       if attibute['type'] == 'event':
         setattr(self.events,attibute['name'],Event(attibute,self))
 
+
   @property
   def account(self):
     return self.__account
@@ -458,5 +472,3 @@ class Contract(ContractBase):
 
   def import_account(self,account):
     self.account = account
-
-

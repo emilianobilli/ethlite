@@ -1,5 +1,6 @@
 from sha3 import keccak_256
 from .Account import Account
+from .Account import ecrecover
 from .Rlp import Rlp
 
 class Transaction(object):
@@ -58,6 +59,26 @@ class Transaction(object):
     else:
       self.__chainId = None
 
+  @classmethod
+  def fromRawTransaction(cls,rawTransaction):
+    '''
+      ToDo: 
+        Raise on can't decode
+        Raise if the len != 9
+    '''
+    values = cls.rlp.decode(rawTransaction)
+    tx = cls()
+    tx.nonce = values[0]
+    tx.gasPrice = values[1]
+    tx.gasLimit = values[2]
+    tx.to = values[3]
+    tx.value = values[4]
+    tx.data = values[5]
+    tx.v = values[6]
+    tx.r = values[7]
+    tx.s = values[8]
+    return tx
+
   def __iter__(self):
     self.i = 0
     return self
@@ -114,8 +135,10 @@ class Transaction(object):
     else:
       if type(value).__name__ == 'str' and value.startswith('0x'):
         return int(value,16)
+      elif value == '':
+        return '0x00'
       else:
-        raise TypeError('Expect <int>, <long> or 0x<str>')
+        raise TypeError('Expect <int>, <long>, 0x<str> or \'\'')
 
   @staticmethod
   def byte_type(value):
@@ -213,6 +236,19 @@ class Transaction(object):
   def s(self,s):
     self.__s = self.integer_type(s)
 
+  @property
+  def address_from(self):
+    if self.r != 0 and self.s != 0 and self.v != 0:
+      '''
+        The transction is signed
+      '''
+      h = int(self.hash_to_sign().hex(),16)
+      if self.chainId is not None:
+        return ecrecover(self.v,self.r,self.s,h,self.chainId)
+      return ecrecover(self.v,self.r,self.s,h)
+    else:
+      return '0x0000000000000000000000000000000000000000'
+
   @staticmethod
   def sign_hash(h,private_key):
     if not isinstance(private_key,Account):
@@ -223,8 +259,27 @@ class Transaction(object):
 
     return private_key.sign_digest(h)
 
-  def sign(self,private_key):
 
+  def hash_to_sign(self):
+    v = self.v
+    r = self.r
+    s = self.s
+
+    if self.chainId is not None:
+      self.v = self.chainId
+      self.r = 0
+      self.s = 0
+      to_hash = self.rlp.encode(list(self),encoding='bytearray')
+    else:
+      to_hash = self.rlp.encode(list(self)[:6],encoding='bytearray')
+    
+    self.v = v
+    self.r = r 
+    self.s = s 
+    return keccak_256(to_hash).digest()
+
+
+  def sign(self,private_key):
     if self.chainId is not None:
       self.v = self.chainId
       self.r = 0
