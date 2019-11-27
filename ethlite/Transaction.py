@@ -61,12 +61,13 @@ class Transaction(object):
 
   @classmethod
   def fromRawTransaction(cls,rawTransaction):
-    '''
-      ToDo: 
-        Raise on can't decode
-        Raise if the len != 9
-    '''
-    values = cls.rlp.decode(rawTransaction)
+    try:
+      values = cls.rlp.decode(rawTransaction)
+    except Exception as e:
+      raise ValueError('fromRawTransaction(): Unable to decode rawTransaction: %s' % str(e))
+    if len(values) != 9:
+      raise ValueError('fromRawTransaction(): Expect 9 values but %d pased' % len(values))
+      
     tx = cls()
     tx.nonce = values[0]
     tx.gasPrice = values[1]
@@ -136,7 +137,7 @@ class Transaction(object):
       if type(value).__name__ == 'str' and value.startswith('0x'):
         return int(value,16)
       elif value == '':
-        return '0x00'
+        return 0
       else:
         raise TypeError('Expect <int>, <long>, 0x<str> or \'\'')
 
