@@ -10,7 +10,7 @@ from .NetworkUtil import CommittedTransaction
 from .NetworkUtil import NetworkUtil
 
 
-class EventLogDict:
+class EventLogDict(object):
   '''
     Represents the parsed return of the logs. Each time a contract 
     is queried for logs, it returns a list of instances of objects 
@@ -33,7 +33,7 @@ class EventLogDict:
     return getattr(self,key)
   
 
-class EventBase:
+class EventBase(object):
   '''
     A abstract class of Events
   '''
@@ -182,7 +182,7 @@ class Event(EventBase):
     return ret
 
   def topic(self, *indexed):
-    if indexed is not ():
+    if indexed != ():
       n = len(indexed)
       topics = AbiEncoder.encode_event_topic(self.indexed[:n],indexed)
     else:
@@ -242,7 +242,7 @@ class ContractFunction(object):
     jsonrpc_valid = True if isinstance(self.contract.net.jsonrpc_provider,JsonRpc) else False
 
     if not jsonrpc_valid:
-      raise AttributeError('commit_filter_query(): Unable to found a valid jsonrpc_provider')
+      raise AttributeError('rawTransaction(): Unable to found a valid jsonrpc_provider')
 
     if 'value' in kwargs and not self.payable:
       raise ValueError('rawTransaction(): value received to a non-payable function')
@@ -278,7 +278,7 @@ class ContractFunction(object):
     if 'nonce' in kwargs:
       tx.nonce = kwargs['nonce']
     else:
-      response = self.contract.net.jsonrpc_provider.eth_getTransactionCount(self.contract.account.addr,'latest')
+      response = self.contract.net.jsonrpc_provider.eth_getTransactionCount(account.addr,'latest')
       if 'result' in response:
         tx.nonce = response['result']
       else:
@@ -289,19 +289,22 @@ class ContractFunction(object):
     else:
       tx.value = 0
 
-    if hasattr(self.contract, 'address'):
-      tx.to = self.contract.address
-    elif 'address' in kwargs:
+    if 'address' in kwargs:
       tx.to = kwargs['address']
+    elif hasattr(self.contract, 'address'):
+      tx.to = self.contract.address
     else:
-      raise AttributeError('call(): Unable to found address to call the contract')
+      raise AttributeError('rawTransaction(): Unable to found address to call the contract')
 
     tx.data = self.signature + data
   
     if 'gasPrice' in kwargs:
       tx.gasPrice = kwargs['gasPrice']
     else:
-      tx.gasPrice = self.contract.default_gasPrice
+      if hasattr(self.contract, 'default_gasPrice'):
+        tx.gasPrice = self.contract.default_gasPrice
+      else:
+        raise AttributeError('rawTransaction(): gasPrice Must be present in kwargs or set default_gasPrice in contract')
     
     if 'chainId' in kwargs:
       tx.chainId = kwargs['chainId']
@@ -354,10 +357,10 @@ class ContractFunction(object):
     else:
       blockNumber = 'latest'
 
-    if hasattr(self.contract, 'address'):
-      to = self.contract.address
-    elif 'address' in kwargs:
+    if 'address' in kwargs:
       to = kwargs['address']
+    elif hasattr(self.contract, 'address'):
+      to = self.contract.address
     else:
       raise AttributeError('call(): Unable to found address to call the contract')
 
@@ -387,7 +390,7 @@ class ContractFunction(object):
       
 
 
-class FunctionSet:
+class FunctionSet(object):
   '''
     A abstract class to contain all contract's methods/functions
   '''

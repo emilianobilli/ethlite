@@ -17,7 +17,7 @@ valid_url_re = compile(
   r'(?:/?|[/?]\S+)$', IGNORECASE
 )
 
-class JsonRpc:
+class JsonRpc(object):
 
   headers = {'content-type': 'application/json'}
   default_timeout = 10

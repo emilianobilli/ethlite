@@ -3,7 +3,7 @@ from .Abi import dec_uint
 from .JsonRpc import JsonRpc
 from .JsonRpc import JsonRpcError
 
-class BlockDataDict:
+class BlockDataDict(object):
   '''
     Represents the parsed return of the Block data. 
   '''
@@ -29,7 +29,7 @@ class BlockDataDict:
     return getattr(self,key)
   
 
-class CommittedTransaction:
+class CommittedTransaction(object):
   def __init__(self, transactionHash, jsonrpc_provider):
     self.transactionHash = transactionHash
     self.jsonrpc_provider = jsonrpc_provider
@@ -60,7 +60,7 @@ class CommittedTransaction:
 
 
 
-class NetworkUtil:
+class NetworkUtil(object):
   '''
     A class to contain all network attributes and contract's methods/functions
   '''

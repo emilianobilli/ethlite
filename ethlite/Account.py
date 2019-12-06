@@ -90,7 +90,7 @@ def ecrecover(v, r, s, hash, chainId=1):
   return convert_point_to_addr(Q)
 
 
-class Sign:
+class Sign(object):
   def __init__(self,s,even):
     self.signature = s
     self.r = int('0x' + self.signature.hex()[:64],16)
@@ -121,7 +121,7 @@ class Sign:
   def eth_signature_format(self):
     return self.signature.hex() + str(hex(27 if self.even else 28))[2:]
 
-class Account:
+class Account(object):
   
   def __init__(self,pk=None):
     if pk is not None:
