@@ -11,7 +11,7 @@ class JsonRpcError(Exception):
 
 valid_url_re = compile(
   r'^(?:http)s?://'  # http:// or https://
-  r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
+  r'(?:[^:@]*?:[^:@]*?@|)'  # basic auth
   r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
   r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
   r'localhost|'  # localhost...
