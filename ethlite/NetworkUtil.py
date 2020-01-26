@@ -67,7 +67,7 @@ class NetworkUtil(object):
   def __init__(self,provider=None,basicauth=()):
     if provider is not None:
       self.jsonrpc_provider = provider
-      if basicauth is not ():
+      if basicauth != ():
         self.jsonrpc_provider.auth = basicauth
 
     self.__chainId = None
