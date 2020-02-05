@@ -212,15 +212,13 @@ class ContractFunction(object):
     the query functions calling the rpc method: eth_Call()
   '''
 
-  def __init__(self,signature,inputs,ouputs,stateMutability,payable,constant,contract):
+  def __init__(self,signature,inputs,ouputs,stateMutability,contract):
     self.contract = contract
 
     self.signature = signature
     self.inputs = inputs
     self.outputs = ouputs
     self.stateMutability = stateMutability
-    self.payable = payable
-    self.constant = constant
 
   @classmethod
   def from_abi(cls, abi, contract):
@@ -228,10 +226,36 @@ class ContractFunction(object):
       raise TypeError('ContractFunction.from_abi(): Invalid abi, expected type -> function')
 
     signature = AbiEncoder.function_signature(abi['name'], [i['type'] for i in abi['inputs'] ])
-    return cls(signature,abi['inputs'],abi['outputs'],abi['stateMutability'],abi['payable'],abi['constant'],contract)
+
+    '''
+      stateMutability: a string with one of the following values: pure
+      (specified to not read blockchain state), view (specified to not modify the blockchain state),
+      nonpayable (function does not accept Ether) and payable (function accepts Ether).
+    '''
+    if 'stateMutability' in abi:
+      stateMutability = abi['stateMutability']
+    else:
+      warn('stateMutability is missing in %s ABI' % abi['name'])
+      if 'constant' in abi:
+        if abi['constant'] == True:
+          stateMutability = 'view'
+        else:
+          if 'payable' in abi:
+            if abi['payable'] == True:
+              stateMutability = 'payable'
+            else:
+              stateMutability = 'nonpayable'
+          else:
+            raise ValueError('Unable to found \"constant\" key in %s ABI' % abi['name'])
+      else:
+        raise ValueError('Unable to found \"constant\" key in %s ABI' % abi['name'])
+
+
+
+    return cls(signature,abi['inputs'],abi['outputs'],stateMutability,contract)
 
   def rawTransaction(self,*args,**kwargs):
-    if self.constant:
+    if self.stateMutability == 'payable' or self.stateMutability == 'nonpayable':
       '''
           Solamente las llamadas a funciones generan cambios de estado en el contrato pueden
           generar transacciones
@@ -244,7 +268,7 @@ class ContractFunction(object):
     if not jsonrpc_valid:
       raise AttributeError('rawTransaction(): Unable to found a valid jsonrpc_provider')
 
-    if 'value' in kwargs and not self.payable:
+    if 'value' in kwargs and self.stateMutability == 'nonpayable':
       raise ValueError('rawTransaction(): value received to a non-payable function')
 
     if 'account' in kwargs:
@@ -284,7 +308,7 @@ class ContractFunction(object):
       else:
         raise JsonRpcError(str(response))
   
-    if self.payable and self.stateMutability == 'payable' and 'value' in kwargs:
+    if self.stateMutability == 'payable' and 'value' in kwargs:
       tx.value = kwargs['value']
     else:
       tx.value = 0
@@ -383,7 +407,7 @@ class ContractFunction(object):
 
 
   def __call__(self,*args, **kwargs):
-    if self.constant:
+    if self.stateMutability == 'view' or self.stateMutability == 'pure':
       return self.call(*args,**kwargs)
     else:
       return self.commit(*args,**kwargs)
