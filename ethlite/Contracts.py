@@ -235,7 +235,6 @@ class ContractFunction(object):
     if 'stateMutability' in abi:
       stateMutability = abi['stateMutability']
     else:
-      warn('stateMutability is missing in %s ABI' % abi['name'])
       if 'constant' in abi:
         if abi['constant'] == True:
           stateMutability = 'view'
@@ -246,7 +245,7 @@ class ContractFunction(object):
             else:
               stateMutability = 'nonpayable'
           else:
-            raise ValueError('Unable to found \"constant\" key in %s ABI' % abi['name'])
+            raise ValueError('Unable to found \"payable\" key in %s ABI' % abi['name'])
       else:
         raise ValueError('Unable to found \"constant\" key in %s ABI' % abi['name'])
 
