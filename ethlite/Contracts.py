@@ -225,7 +225,7 @@ class ContractFunction(object):
     if abi['type'] != 'function':
       raise TypeError('ContractFunction.from_abi(): Invalid abi, expected type -> function')
 
-    signature = AbiEncoder.function_signature(abi['name'], [i['type'] for i in abi['inputs'] ])
+    signature = AbiEncoder.function_signature(abi['name'], AbiEncoder.parse_io(abi['inputs']))
 
     '''
       stateMutability: a string with one of the following values: pure
@@ -252,6 +252,14 @@ class ContractFunction(object):
 
 
     return cls(signature,abi['inputs'],abi['outputs'],stateMutability,contract)
+
+  @property
+  def prototype(self):
+    return AbiEncoder.parse_io(self.inputs)
+
+  def decodeArguments(self, data):
+    return AbiEncoder.decode(AbiEncoder.parse_io(self.inputs),data)
+    
 
   def rawTransaction(self,*args,**kwargs):
     if self.stateMutability == 'payable' or self.stateMutability == 'nonpayable':
@@ -293,7 +301,7 @@ class ContractFunction(object):
     if 'from' in kwargs and kwargs['from'].lower() != account.addr.lower():
       raise ValueError('rawTransaction(): "Account.addr" and "from" argument are different')
 
-    arguments = [i['type'] for i in self.inputs]
+    arguments = AbiEncoder.parse_io(self.inputs)
     data = AbiEncoder.encode(arguments, args)
 
     tx = Transaction()
@@ -366,7 +374,7 @@ class ContractFunction(object):
     if not jsonrpc_valid:
       raise AttributeError('call(): Unable to found a valid jsonrpc_provider')
 
-    arguments = [i['type'] for i in self.inputs]
+    arguments = AbiEncoder.parse_io(self.inputs)
     if len(arguments) != 0:
       data = self.signature + AbiEncoder.encode(arguments, arg)
     else:
@@ -396,7 +404,7 @@ class ContractFunction(object):
     if result == '0x':
       return_decoded = [None] * len(self.outputs)
     else:
-      outputs = [ouput['type'] for ouput in self.outputs ]
+      outputs = AbiEncoder.parse_io(self.outputs)
       return_decoded = AbiEncoder.decode(outputs,result[2:])
 
     if len(return_decoded) == 1:
@@ -461,6 +469,7 @@ class ContractBase(object):
   def balance(self,balance):
     raise AttributeError('Impossible to set balance, send amount to do it')
 
+
 class Contract(ContractBase):
   def __init__(self,abi,**kwargs):
     self.abi = abi
@@ -498,3 +507,15 @@ class Contract(ContractBase):
 
   def import_account(self,account):
     self.account = account
+
+  def parseInputData(self,data):
+    ret = {'function': None, 'input': None}
+    function_signature = data[:10]
+    data = data[10:]
+    for function in self.functions.__dict__.keys():
+      if function_signature == getattr(self.functions,function).signature:
+        ret['function'] = function
+        ret['input'] = getattr(self.functions,function).decodeArguments(data)
+        return ret
+    return ret
+
