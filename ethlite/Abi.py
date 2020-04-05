@@ -723,7 +723,10 @@ class AbiEncoder:
 
   @classmethod
   def event_hash(cls, event_name,arguments):
-    event_raw = '%s(%s)' % (event_name,','.join(arguments))
+    args = []
+    for a in arguments:
+      args.append(str(a))
+    event_raw = '%s(%s)' % (event_name,','.join(args))
     event_bytes = bytearray.fromhex(string_to_hex(event_raw))
     return '0x' + keccak_256(event_bytes).hexdigest()
 

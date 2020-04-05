@@ -127,15 +127,15 @@ class Event(EventBase):
 
     inputs = abi['inputs']
 
-    in_order = []
-
+    in_order = AbiEncoder.parse_io(inputs)
+    non_indexed_types = []
     for i in inputs:
-      in_order.append(i['type'])
       if i['indexed']:
         self.indexed.append(i['type'])
       else:
-        self.inputs.append(i['type'])
-
+        non_indexed_types.append(i)
+      
+    self.inputs = AbiEncoder.parse_io(non_indexed_types)
     self.event_hash = AbiEncoder.event_hash(self.name, in_order)
 
   def parseLogData(self,logs):
