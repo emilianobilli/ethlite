@@ -29,7 +29,7 @@ class Rlp:
 
   @classmethod
   def decode_data(cls,data):
-    prefix = int(data[:2],16)
+    prefix = int(data[:2],16) if data[:2] != '' else 0
     if prefix < 0xc0: # String
       if prefix <= 0x7f:
         return (cls.tohex(prefix), 2)
@@ -40,7 +40,7 @@ class Rlp:
         return ('0x' + data[2:2+(data_len*2)],2+data_len*2)
       else:
         len_of_data_len = prefix - 0xb7
-        data_len = int(data[2:2+(len_of_data_len*2)],16)
+        data_len = int(data[2:2+(len_of_data_len*2)],16) if data[2:2+(len_of_data_len*2)] != '' else 0
         return ('0x' + data[2+(len_of_data_len*2):2+(len_of_data_len*2)+(data_len*2)],1*2+len_of_data_len*2+data_len*2)
     else: # List
       ret = []
@@ -48,7 +48,7 @@ class Rlp:
         payload_len = (prefix - 0xc0) * 2
         offset = 2
       else:
-        payload_len = int(data[2:2+(prefix - 0xf7) * 2],16) * 2
+        payload_len = int(data[2:2+(prefix - 0xf7) * 2],16) * 2 if data[2:2+(prefix - 0xf7)*2] != '' else 0
         offset = 2 + (prefix - 0xf7) * 2
       bytes_to_decode = payload_len 
       while bytes_to_decode > 0:
