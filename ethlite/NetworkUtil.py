@@ -27,7 +27,30 @@ class BlockDataDict(object):
 
   def __getitem__(self,key):
     return getattr(self,key)
-  
+
+class TransactionDict(object):
+  '''
+    Represent the transction
+  '''
+  integer_fields = ["blockNumber", "gas", "gasPrice", "value", "nonce"]
+  def __init__(self, data):
+    for key in data.keys():
+      if key in self.integer_fields:
+        setattr(self,key,dec_uint(data[key]))
+      else:
+        setattr(self,key,data[key])
+
+  def __repr__(self):
+    return 'TransactionDict(%s)' % str(dict(self))
+
+  def __iter__(self):
+    for k in self.__dict__.keys():
+      if k == "integer_fields":
+        continue
+      yield k, self.__dict__[k]
+
+  def __getitem__(self,key):
+    return getattr(self,key)
 
 class CommittedTransaction(object):
   def __init__(self, transactionHash, jsonrpc_provider):
@@ -71,6 +94,19 @@ class NetworkUtil(object):
         self.jsonrpc_provider.auth = basicauth
 
     self.__chainId = None
+
+  def getTransactionByHash(self, txHash):
+    if isinstance(self.__jsonrpc_provider, JsonRpc):
+      if isinstance(txHash, str):
+        if not txHash.startswith('0x'):
+          txHash = '0x' + txHash
+        response = self.jsonrpc_provider.eth_getTransactionByHash(txHash)
+      else:
+        raise TypeError('getTransactionByHash(): txHash must be a hexstring')
+      if 'result' in response:
+        return TransactionDict(response['result'])
+    else:
+      raise TypeError('getTransactionByHash(): unable to found a valid JsonRpc Provider')
 
   def getBlockByNumber(self, blockNumber, withTx=False):
     if isinstance(self.__jsonrpc_provider, JsonRpc):
@@ -129,3 +165,4 @@ class NetworkUtil(object):
       self.__jsonrpc_provider = jsonrpc_provider
     else:
       self.__jsonrpc_provider = JsonRpc(jsonrpc_provider)
+

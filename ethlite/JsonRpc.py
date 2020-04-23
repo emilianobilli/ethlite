@@ -141,6 +141,15 @@ class JsonRpc(object):
     data['params'].append(rawTransaction)
     return self.doPost(dumps(data))
 
+  def eth_getTransactionByHash(self, txHash):
+    '''
+      Returns the information about a transaction requested by transaction hash.
+    '''
+    data = self.get_body_dict()
+    data['method'] = 'eth_getTransactionByHash'
+    data['params'].append(txHash)
+    return self.doPost(dumps(data))
+
   def eth_call(self, obj, tag):
     '''
       Executes a new message call immediately without creating a transaction on the block chain.
