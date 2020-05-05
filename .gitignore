@@ -63,3 +63,7 @@ IEMACO
 kyber.py
 decode.py
 BidPlugin.py
+dydx-ejemplo.py
+dydx-test.py
+dydx.py
+tx.py
