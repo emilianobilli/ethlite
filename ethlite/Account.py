@@ -170,3 +170,9 @@ class Account(object):
   def sign(self, message):
     sig, even = self.__privateKey.sign_deterministic(message,hashfunc=keccak_256)
     return Sign(sig,even)
+
+  def sign_message(self, message):
+    msg = '\x19Ethereum Signed Message:32\n%s' % (keccak_256(message).hexdigest())
+    return self.sign(msg)
+
+    

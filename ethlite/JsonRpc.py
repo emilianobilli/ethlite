@@ -64,7 +64,7 @@ class JsonRpc(object):
   def __repr__(self):
     return 'JsonRpc(%s)' % self.node
 
-  def add_header(cls, key, value):
+  def add_header(self, key, value):
     self.instance_headers[key] = value
 
   def doPost(self,data,timeout=None):
