@@ -172,7 +172,8 @@ class Account(object):
     return Sign(sig,even)
 
   def sign_message(self, message):
-    msg = '\x19Ethereum Signed Message:32\n%s' % (keccak_256(message).hexdigest())
-    return self.sign(msg)
+    msg = '0x' + keccak_256(message.encode('utf-8')).hexdigest()
+    msg = '\x19Ethereum Signed Message:\n%d%s' % (len(msg), msg)
+    msg = bytearray(msg.encode('utf-8'))
+    return self.sign_digest(bytearray(keccak_256(msg).digest())).eth_signature_format()
 
-    

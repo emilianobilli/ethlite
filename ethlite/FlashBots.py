@@ -3,6 +3,9 @@ from re import compile
 from re import match
 from re import IGNORECASE
 
+from eth_account import Account as eth_Account, messages
+from sha3 import keccak_256
+
 import requests
 
 
@@ -51,7 +54,9 @@ class FlashBotRpc(object):
 
 
   def authHeader(self, account, body):
-    self.instance_headers['X-Flashbots-Signature'] = '%s:%s' % (account.addr, account.sign_message(dumps(body)))
+    message = messages.encode_defunct(text='0x'+keccak_256(bytearray(dumps(body).encode('utf-8'))).hexdigest())
+    self.instance_headers['X-Flashbots-Signature'] = '%s:%s' % (account.addr, eth_Account.sign_message(message, account.privateKey).signature.hex())
+    print(self.instance_headers, '\n',dumps(body))
 
   def eth_sendBundle(self, account, txs, blockNumber, minTimestamp=None, maxTimestamp=None, revertingTxHashes=None):
     data = self.get_body_dict()
