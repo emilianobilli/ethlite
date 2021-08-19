@@ -61,7 +61,7 @@ class Transaction(object):
 
   @classmethod
   def fromRawTransaction(cls,rawTransaction):
-    if rawTransaction.starswith('0x02'):
+    if rawTransaction.startswith('0x02'):
       legacy = False
       rawTransaction = '0x' + rawTransaction[4:]
     else:
