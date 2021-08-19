@@ -61,23 +61,40 @@ class Transaction(object):
 
   @classmethod
   def fromRawTransaction(cls,rawTransaction):
+    if rawTransaction.starswith('0x02'):
+      legacy = False
+      rawTransaction = '0x' + rawTransaction[4:]
+    else:
+      legacy = True
     try:
       values = cls.rlp.decode(rawTransaction)
     except Exception as e:
       raise ValueError('fromRawTransaction(): Unable to decode rawTransaction: %s' % str(e))
-    if len(values) != 9:
+    if len(values) != 9 and legacy:
       raise ValueError('fromRawTransaction(): Expect 9 values but %d pased' % len(values))
-      
-    tx = cls()
-    tx.nonce = values[0]
-    tx.gasPrice = values[1]
-    tx.gasLimit = values[2]
-    tx.to = values[3]
-    tx.value = values[4]
-    tx.data = values[5]
-    tx.v = values[6]
-    tx.r = values[7]
-    tx.s = values[8]
+    
+    if legacy:
+      tx = cls()
+      tx.nonce = values[0]
+      tx.gasPrice = values[1]
+      tx.gasLimit = values[2]
+      tx.to = values[3]
+      tx.value = values[4]
+      tx.data = values[5]
+      tx.v = values[6]
+      tx.r = values[7]
+      tx.s = values[8]
+    else:
+      tx = cls()
+      tx.nonce = values[1]
+      tx.gasPrice = values[3]
+      tx.gasLimit = values[4]
+      tx.to = values[5]
+      tx.value = values[6]
+      tx.data = values[7]
+      tx.v = values[9]
+      tx.r = values[10]
+      tx.s = values[11]
     return tx
 
   def __iter__(self):
