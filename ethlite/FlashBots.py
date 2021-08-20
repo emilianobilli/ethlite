@@ -58,6 +58,18 @@ class FlashBotRpc(object):
     self.instance_headers['X-Flashbots-Signature'] = '%s:%s' % (account.addr, eth_Account.sign_message(message, account.privateKey).signature.hex())
     print(self.instance_headers, '\n',dumps(body))
 
+  def flashbots_getBundleStats(self, account, bundleHash, blockNumber):
+    data = self.get_body_dict()
+    data['method'] = 'flashbots_getBundleStats'
+    obj = {
+      'bundleHash': bundleHash,
+      'blockNumber': blockNumber
+    }
+
+    data['params'].append(obj)
+    self.authHeader(account, data)
+    return self.doPost(dumps(data))
+
   def eth_sendBundle(self, account, txs, blockNumber, minTimestamp=None, maxTimestamp=None, revertingTxHashes=None):
     data = self.get_body_dict()
     data['method'] = 'eth_sendBundle'
