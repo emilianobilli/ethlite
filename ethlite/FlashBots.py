@@ -56,7 +56,6 @@ class FlashBotRpc(object):
   def authHeader(self, account, body):
     message = messages.encode_defunct(text='0x'+keccak_256(bytearray(dumps(body).encode('utf-8'))).hexdigest())
     self.instance_headers['X-Flashbots-Signature'] = '%s:%s' % (account.addr, eth_Account.sign_message(message, account.privateKey).signature.hex())
-    print(self.instance_headers, '\n',dumps(body))
 
   def flashbots_getBundleStats(self, account, bundleHash, blockNumber):
     data = self.get_body_dict()
@@ -66,6 +65,16 @@ class FlashBotRpc(object):
       'blockNumber': blockNumber
     }
 
+    data['params'].append(obj)
+    self.authHeader(account, data)
+    return self.doPost(dumps(data))
+
+  def flashbots_getUserStats(self, account, blockNumber):
+    data = self.get_body_dict()
+    data['method'] = 'flashbots_getUserStats'
+    obj = {
+      'blockNumber': blockNumber
+    }
     data['params'].append(obj)
     self.authHeader(account, data)
     return self.doPost(dumps(data))
