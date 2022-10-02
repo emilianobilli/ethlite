@@ -403,7 +403,7 @@ def enc_bytes(b, fixed=False):
 
   words = len(b) // 64
 
-  b = b[:64*words] + pad_right(b[64*words:])
+  b = b[:64*words]
   
   return enc_uint(size) + b if not fixed else b
 

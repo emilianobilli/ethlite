@@ -105,11 +105,9 @@ class Sign(object):
       (283) secp256k1n = 115792089237316195423570985008687907852837564279074904382605163141518161494337
     '''
 
+    self.even = even
     if self.s * 2 > secp256k1n:
       self.s = secp256k1n - self.s
-      self.even = not even
-    else:
-      self.even = even
 
   def __unicode__(self):
     return self.signature.hex()
